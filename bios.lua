@@ -4,6 +4,8 @@
 -- You require `recrafted` to get access to them.
 local rc = {}
 
+rc._ROM_DIR = "/rom"
+
 local function rm(api)
   local tab = _G[api]
   _G[api] = nil
@@ -29,10 +31,10 @@ rc.term.write("Starting "..rc.version()..".")
 rc.term.setCursorPos(1,2)
 
 -- this is overwritten later
-local expect = function(_,_,_,_) end
+rc.expect = function(_,_,_,_) end
 
 function rc.write(text)
-  expect(1, text, "string")
+  rc.expect(1, text, "string")
   local lines = 0
   local w, h = rc.term.getSize()
   while #text > 0 do
@@ -63,6 +65,13 @@ function _G.print(...)
   return rc.write(table.concat(args, "  ") .. "\n")
 end
 
+function rc.printError(...)
+  local old = rc.term.getTextColor()
+  rc.term.setTextColor(rc.colors.red)
+  print(...)
+  rc.term.setTextColor(old)
+end
+
 -- get rid of Lua 5.1 things.
 if _VERSION == "Lua 5.1" then
   rc.lua51 = {
@@ -79,10 +88,10 @@ if _VERSION == "Lua 5.1" then
   table.maxn = nil
 
   function _G.load(x, name, mode, env)
-    expect(1, x, "string", "function")
-    expect(2, name, "string", "nil")
-    expect(3, mode, "string", "nil")
-    expect(4, env, "table", "nil")
+    rc.expect(1, x, "string", "function")
+    rc.expect(2, name, "string", "nil")
+    rc.expect(3, mode, "string", "nil")
+    rc.expect(4, env, "table", "nil")
     env = env or _G
 
     local result, err
@@ -102,9 +111,9 @@ if _VERSION == "Lua 5.1" then
 end
 
 function _G.loadfile(file, mode, env)
-  expect(1, file, "string")
-  expect(2, mode, "string", "nil")
-  expect(3, env, "table", "nil")
+  rc.expect(1, file, "string")
+  rc.expect(2, mode, "string", "nil")
+  rc.expect(3, env, "table", "nil")
 
   local handle, err = rc.fs.open(file, "r")
   if not handle then
@@ -117,18 +126,20 @@ function _G.loadfile(file, mode, env)
   return load(data, "="..file, mode, env)
 end
 
+function _G.dofile(file)
+  return assert(loadfile(file))()
+end
+
 print("Loading startup scripts.")
 
 -- load some wrapper APIs.
-local files = rc.fs.list("/rom/init")
+local files = rc.fs.list(rc._ROM_DIR.."/init")
 table.sort(files)
 for _, file in ipairs(files) do
   print(file)
-  assert(loadfile("/rom/init/"..file))(rc)
+  assert(loadfile(rc._ROM_DIR.."/init/"..file))(rc)
 end
-
-expect = require("cc.expect")
 
 print("Starting coroutine manager.")
 
-while true do coroutine.yield() end
+rc.thread.start()

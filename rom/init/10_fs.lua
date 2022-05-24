@@ -13,12 +13,23 @@ function fs.complete(path, location, include_files, include_dirs)
   expect(3, include_files, "boolean", "nil")
   expect(4, include_dirs, "boolean", "nil")
 
-  local absolute = fs.combine(location, path)
-  local dir = fs.getDir(path)
+  if path:sub(1,1) == "/" then
+    location = fs.getDir(path)
+  end
 
-  if not fs.exists(dir) or not fs.isDir(dir) then
+  if not fs.exists(location) or not fs.isDir(location) then
     return nil
   end
 
-  local files = fs.list(dir)
+  local name = fs.getName(path)
+  local files = fs.list(location)
+
+  local completions = {}
+
+  for i=1, #files, 1 do
+    local full = fs.combine(location, files[i])
+    if files[i]:sub(1, #name) == name then
+      completion[#completion+1] = files[i]:sub(#name+1)
+    end
+  end
 end
