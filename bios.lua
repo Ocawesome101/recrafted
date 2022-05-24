@@ -117,14 +117,14 @@ function _G.loadfile(file, mode, env)
   return load(data, "="..file, mode, env)
 end
 
-print("Loading wrapper APIs.")
+print("Loading startup scripts.")
 
 -- load some wrapper APIs.
-local files = rc.fs.list("/rom/apis")
+local files = rc.fs.list("/rom/init")
 table.sort(files)
 for _, file in ipairs(files) do
   print(file)
-  assert(loadfile("/rom/apis/"..file))(rc)
+  assert(loadfile("/rom/init/"..file))(rc)
 end
 
 expect = require("cc.expect")
