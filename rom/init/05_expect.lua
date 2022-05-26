@@ -53,4 +53,5 @@ setmetatable(_expect, {__call = function(_, ...)
 end})
 
 rc.expect = _expect.expect
+package.loaded.expect = _expect
 package.loaded["cc.expect"] = _expect

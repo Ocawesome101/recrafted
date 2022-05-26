@@ -39,23 +39,41 @@ function rc.write(text)
   local lines = 0
   local w, h = rc.term.getSize()
 
+  local function inc_cy(cy)
+    lines = lines + 1
+
+    if cy > h - 1 then
+      rc.term.scroll(1)
+      return cy
+    else
+      return cy + 1
+    end
+  end
+
   while #text > 0 do
+    local nl = text:find("\n") or (#text - 1)
+    local chunk = text:sub(1, nl + 1)
+    text = text:sub(#chunk + 1)
+
+    local has_nl = chunk:sub(-1) == "\n"
+    if has_nl then chunk = chunk:sub(1, -2) end
+
     local cx, cy = rc.term.getCursorPos()
-
-    local next_bit = text:sub(1, math.min(w - cx + 1,
-      text:find("\n") or math.huge))
-    text = text:sub(#next_bit+1)
-
-    if #next_bit > 0 then lines = lines + 1 end
-    rc.term.write(next_bit)
-
-    if next_bit:sub(-1) == "\n" or cx + #next_bit >= w then
-      if cy >= h and #text > 0 then
-        rc.term.scroll(1)
-        rc.term.setCursorPos(1, h)
-      else
-        rc.term.setCursorPos(1, cy + 1)
+    while #chunk > 0 do
+      if cx > w then
+        rc.term.setCursorPos(1, inc_cy(cy))
+        cx, cy = rc.term.getCursorPos()
       end
+
+      local to_write = chunk:sub(1, w - cx + 1)
+      rc.term.write(to_write)
+
+      chunk = chunk:sub(#to_write + 1)
+      cx, cy = rc.term.getCursorPos()
+    end
+
+    if has_nl then
+      rc.term.setCursorPos(1, inc_cy(cy))
     end
   end
 
@@ -75,7 +93,7 @@ end
 
 function rc.printError(...)
   local old = rc.term.getTextColor()
-  rc.term.setTextColor(rc.colors.red)
+  rc.term.setTextColor(require("colors").red)
   print(...)
   rc.term.setTextColor(old)
 end

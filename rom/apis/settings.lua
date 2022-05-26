@@ -1,6 +1,7 @@
 -- rc.settings
 
 local rc = require("rc")
+local expect = require("expect")
 
 local settings = {}
 local defs = {}
@@ -11,8 +12,8 @@ function settings.define(name, opts)
   rc.expect(2, opts, "table", "nil")
 
   opts = opts or {}
-  opts.description = rc.field(opts, "description", "string", "nil")
-  opts.type = rc.field(opts, "type", "string", "nil")
+  opts.description = expect.field(opts, "description", "string", "nil")
+  opts.type = expect.field(opts, "type", "string", "nil")
   defs[name] = opts
 end
 

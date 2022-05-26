@@ -92,7 +92,6 @@ function term.read(replace, history, complete, default)
       completions = {}
 
       if sty + ln > h then
-        term.scroll(sty + ln - h)
         sty = sty - (sty + ln - h)
       end
     end

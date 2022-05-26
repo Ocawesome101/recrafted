@@ -2,6 +2,7 @@
 
 local rc = require("rc")
 local bit32 = require("bit32")
+local expect = require("expect")
 
 local colors = {
   white     = 0x1,
@@ -58,14 +59,14 @@ end
 colors.test = bit32.btest
 
 function colors.packRGB(r, g, b)
-  rc.range(rc.expect(1, r, "number"), 0, 1)
-  rc.range(rc.expect(2, g, "number"), 0, 1)
-  rc.range(rc.expect(3, b, "number"), 0, 1)
+  expect.range(rc.expect(1, r, "number"), 0, 1)
+  expect.range(rc.expect(2, g, "number"), 0, 1)
+  expect.range(rc.expect(3, b, "number"), 0, 1)
   return (r * 255 * 0x10000) + (g * 255 * 0x100) + (b * 255)
 end
 
 function colors.unpackRGB(rgb)
-  rc.range(rc.expect(1, rgb, "number"), 0, 0xFFFFFF)
+  expect.range(rc.expect(1, rgb, "number"), 0, 0xFFFFFF)
   return bit32.rshift(rgb, 16) / 255,
     bit32.rshift(bit32.band(rgb, 0xFF00), 8) / 255,
     bit32.band(rgb, 0xFF) / 255
