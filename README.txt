@@ -9,3 +9,4 @@ legally  bound  to  license  them  under  the CCPL.
 All  APIs  are  implemented  as  described  on  the
 CC: Tweaked wiki at https://tweaked.cc, with slight
 modifications   to  fit  Recrafted's   API  design.
+None of  Recrafted's  code is  taken from  CraftOS.

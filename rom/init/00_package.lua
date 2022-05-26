@@ -12,6 +12,7 @@ package.path = string.gsub("/$/apis/?.lua;/$/modules/?.lua;./?.lua",
 package.loaded = {
   _G = _G,
   os = os,
+  rc = rc,
   math = math,
   utf8 = utf8,
   table = table,

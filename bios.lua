@@ -126,8 +126,16 @@ function _G.loadfile(file, mode, env)
   return load(data, "="..file, mode, env)
 end
 
+local function _assert(a, ...)
+  if not a then
+    error(..., 3)
+  else
+    return a, ...
+  end
+end
+
 function _G.dofile(file)
-  return assert(loadfile(file))()
+  return _assert(loadfile(file))()
 end
 
 print("Loading startup scripts.")
@@ -140,6 +148,11 @@ for _, file in ipairs(files) do
   assert(loadfile(rc._ROM_DIR.."/init/"..file))(rc)
 end
 
+rc.thread.add(function()
+  dofile("/rom/programs/shell.lua")
+end)
+
 print("Starting coroutine manager.")
 
+rc.queueEvent("init")
 rc.thread.start()

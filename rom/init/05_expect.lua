@@ -30,10 +30,22 @@ end
 function _expect.field(tbl, index, ...)
   _expect.expect(1, tbl, "table")
   _expect.expect(2, index, "string")
+  if tbl[index] == nil then
+    error(("field '%s' missing from table"):format(index), 2)
+  end
   return checkType(("%q"):format(index), "field", tbl[index], ...)
 end
 
-function _expect.range()
+function _expect.range(num, min, max)
+  _expect.expect(1, num, "number")
+  _expect.expect(2, min, "number", "nil")
+  _expect.expect(3, max, "number", "nil")
+  min = min or -math.huge
+  max = max or math.huge
+  if num < min or num > max then
+    error(("number outside of range (expected %d to be within %d and %d")
+      :format(num, min, max), 2)
+  end
 end
 
 setmetatable(_expect, {__call = function(_, ...)
