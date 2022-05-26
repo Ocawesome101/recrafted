@@ -4,4 +4,4 @@ local rc = ...
 
 _G.io = {}
 
-error("TODO: io", 0)
+rc.printError("TODO: io")
