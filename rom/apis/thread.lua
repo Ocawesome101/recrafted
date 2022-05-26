@@ -1,6 +1,6 @@
 -- Recrafted coroutine manager
 
-local rc = ...
+local rc = require("rc")
 
 rc.thread = {}
 
@@ -10,11 +10,42 @@ local threads = {}
 local id = 0
 local current = 0
 
-function rc.thread.add(func)
+function rc.thread.add(func, name)
   rc.expect(1, func, "function")
-  threads[id+1] = coroutine.create(func)
+  rc.expect(2, name, "string", "nil")
+
+  local cur = threads[current] or {
+    dir = "/",
+    vars = {}
+  }
+
+  threads[id+1] = {coro = coroutine.create(func),
+    name = name or tostring(func),
+    dir = cur.dir, vars = setmetatable({}, {__index = cur.vars})}
   id = id + 1
+
   return id
+end
+
+function rc.vars()
+  return threads[current].vars
+end
+
+function rc.dir()
+  return threads[current].dir
+end
+
+function rc.setDir(dir)
+  rc.expect(1, dir, "string")
+
+  if not rc.fs.exists(dir) then
+    return nil, "that directory does not exist"
+
+  elseif not rc.fs.isDir(dir) then
+    return nil, "not a directory"
+  end
+
+  threads[current].dir = dir
 end
 
 function rc.thread.remove(tid)
@@ -32,8 +63,7 @@ end
 function rc.thread.info()
   local running = {}
   for i, thread in pairs(threads) do
-    running[#running+1] = {id = i, ident = tostring(thread)
-      :match("thread: (.+)")}
+    running[#running+1] = {id = i, name = thread.name}
   end
   return running
 end
@@ -49,10 +79,12 @@ function rc.thread.start()
     local event = table.pack(yield())
     for _id, thread in pairs(threads) do
       current = _id
-      local result = table.pack(coroutine.resume(thread,
+      local result = table.pack(coroutine.resume(thread.coro,
         table.unpack(event, 1, event.n)))
+
       if not result[1] then
-        rc.printError(string.format("thread %d: %s", _id, result[2]))
+        rc.printError(string.format("thread %d (%s): %s", _id, thread.name,
+          result[2]))
         threads[_id] = nil
       end
     end
@@ -63,3 +95,5 @@ function rc.thread.start()
 
   os.shutdown()
 end
+
+return rc.thread

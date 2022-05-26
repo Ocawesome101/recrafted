@@ -1,6 +1,6 @@
 -- rc.textutils
 
-local rc = ...
+local rc = require("rc")
 
 local tu = {}
 
@@ -76,7 +76,7 @@ local function tabulate(paged, ...)
     if type(argi) == "table" then
       for n=1, #argi, 1 do
         linear[#linear+1] = rc.expect(n, argi[n], "string")
-        max_len = math.max(max_len, #argi[n])
+        max_len = math.max(max_len, #argi[n] + 2)
       end
 
     else
@@ -211,4 +211,4 @@ function tu.complete()
   error("not yet implemented")
 end
 
-rc.textutils = tu
+return tu

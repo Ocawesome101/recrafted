@@ -34,3 +34,4 @@ function rc.sleep(n)
 end
 
 os.sleep = rc.sleep
+os.version = rc.version

@@ -1,6 +1,7 @@
 -- rc.colors
 
-local rc = ...
+local rc = require("rc")
+local bit32 = require("bit32")
 
 local colors = {
   white     = 0x1,
@@ -75,5 +76,4 @@ function colors.toBlit(color)
   return string.format("%x", math.floor(math.log(color, 2)))
 end
 
-rc.colors = colors
-rc.colours = colors
+return colors

@@ -1,6 +1,6 @@
 -- rc.settings
 
-local rc = ...
+local rc = require("rc")
 
 local settings = {}
 local defs = {}
@@ -103,5 +103,4 @@ function settings.save(path)
   return true
 end
 
-rc.settings = settings
-package.loaded.settings = settings
+return settings

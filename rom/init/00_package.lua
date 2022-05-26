@@ -6,7 +6,7 @@ _G.package = {}
 
 package.config = "/\n;\n?\n!\n-"
 package.cpath = ""
-package.path = string.gsub("/$/apis/?.lua;/$/modules/?.lua;./?.lua",
+package.path = string.gsub("$/apis/?.lua;$/modules/?.lua;./?.lua",
   "%$", rc._ROM_DIR)
 
 package.loaded = {

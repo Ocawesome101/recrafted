@@ -35,23 +35,31 @@ rc.expect = function(_,_,_,_) end
 
 function rc.write(text)
   rc.expect(1, text, "string")
+
   local lines = 0
   local w, h = rc.term.getSize()
+
   while #text > 0 do
     local cx, cy = rc.term.getCursorPos()
 
-    local next_bit = text:sub(1, math.min(w - cx, text:find("\n") or 0))
+    local next_bit = text:sub(1, math.min(w - cx + 1,
+      text:find("\n") or math.huge))
     text = text:sub(#next_bit+1)
 
     if #next_bit > 0 then lines = lines + 1 end
     rc.term.write(next_bit)
 
-    if cy == h and #text > 0 then
-      rc.term.scroll(1)
-    else
-      rc.term.setCursorPos(1, cy + 1)
+    if next_bit:sub(-1) == "\n" or cx + #next_bit >= w then
+      if cy >= h and #text > 0 then
+        rc.term.scroll(1)
+        rc.term.setCursorPos(1, h)
+      else
+        rc.term.setCursorPos(1, cy + 1)
+      end
     end
   end
+
+  return lines
 end
 
 -- print() gets to be global.
@@ -140,19 +148,21 @@ end
 
 print("Loading startup scripts.")
 
--- load some wrapper APIs.
 local files = rc.fs.list(rc._ROM_DIR.."/init")
 table.sort(files)
+
 for _, file in ipairs(files) do
   print(file)
   assert(loadfile(rc._ROM_DIR.."/init/"..file))(rc)
 end
 
-rc.thread.add(function()
+local thread = require("thread")
+
+thread.add(function()
   dofile("/rom/programs/shell.lua")
-end)
+end, "shell")
 
 print("Starting coroutine manager.")
 
-rc.queueEvent("init")
-rc.thread.start()
+os.queueEvent("init")
+thread.start()

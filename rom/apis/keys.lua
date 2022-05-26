@@ -1,6 +1,6 @@
 -- rc.keys
 
-local rc = ...
+local rc = require("rc")
 
 -- automatic keymap detection :)
 -- this uses a fair bit of magic
@@ -26,4 +26,4 @@ function lib.getName(code)
   return lib[code]
 end
 
-rc.keys = lib
+return lib
