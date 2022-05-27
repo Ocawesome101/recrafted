@@ -177,12 +177,20 @@ end
 local thread = require("thread")
 local settings = require("settings")
 
-if settings.get("bios.use_multishell") then
-  require("multishell").launch(nil, "/rom/programs/shell.lua")
-else
+if settings.get("bios.compat_mode") then
   thread.add(function()
-    dofile("/rom/programs/shell.lua")
-  end, "shell")
+    local sh = require("shell")
+    sh.init()
+    sh.run("/rom/programs/craftos.lua", "/rom/programs/shell.lua")
+  end)
+else
+  if settings.get("bios.use_multishell") then
+    require("multishell").launch(nil, "/rom/programs/shell.lua")
+  else
+    thread.add(function()
+      dofile("/rom/programs/shell.lua")
+    end, "shell")
+  end
 end
 
 print("Starting coroutine manager.")

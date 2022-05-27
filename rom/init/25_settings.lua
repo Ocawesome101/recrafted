@@ -15,4 +15,10 @@ settings.define("bios.use_multishell", {
   default = term.isColor()
 })
 
+settings.define("bios.compat_mode", {
+  description = "Attempt some CraftOS compatibility by injecting APIs into _G",
+  type = "boolean",
+  default = false
+})
+
 settings.load()

@@ -36,7 +36,7 @@ end
 
 function settings.get(name, default)
   rc.expect(1, name, "string")
-  return set[name] or default or defs[name].default
+  return set[name] or default or defs[name] and defs[name].default
 end
 
 function settings.getDetails(name)
