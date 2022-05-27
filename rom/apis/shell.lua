@@ -49,6 +49,7 @@ function shell.execute(command, ...)
   if builtins[command] then
     local func = builtins[command]
     return callCommand(command, func, ...)
+
   else
     local path, res_err = shell.resolveProgram(command)
     if not path then
@@ -62,14 +63,19 @@ function shell.execute(command, ...)
     end
 
     local args = table.pack(...)
+    local result
     local id = rc.thread.add(function()
       shell.init()
-      return callCommand(command, ok, table.unpack(args, 1, args.n))
+      result = table.pack(callCommand(command, ok,
+        table.unpack(args, 1, args.n)))
     end, command)
 
     repeat rc.sleep(0.05) until not rc.thread.exists(id)
-  end
 
+    if result then
+      return table.unpack(result, 1, result.n)
+    end
+  end
 
   return true
 end
