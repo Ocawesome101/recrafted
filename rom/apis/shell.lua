@@ -19,27 +19,55 @@ function shell.init()
     ".:%s/programs", rc._ROM_DIR)
 end
 
-function shell.execute(command, ...)
-  rc.expect(1, command, "string")
-
-  local path, res_err = shell.resolveProgram(command)
-  if not path then
-    return nil, res_err
+local builtins = {
+  cd = function(dir)
+    if dir then
+      shell.setDir(dir)
+    else
+      print(shell.dir())
+    end
   end
+}
 
-  local ok, err = loadfile(path)
-
-  if not ok then
-    return nil, err
-  end
-
+local function callCommand(func, ...)
   rc.vars().program = command
-  rc.vars().program = "shell"
 
-  local success, prog_err = pcall(ok, ...)
+  local success, prog_err = pcall(func, ...)
+
+  rc.vars().program = "shell"
   if not success then
     return nil, prog_err
   end
+
+  return true
+end
+
+function shell.execute(command, ...)
+  rc.expect(1, command, "string")
+
+  if builtins[command] then
+    local func = builtins[command]
+    return callCommand(func, ...)
+  else
+    local path, res_err = shell.resolveProgram(command)
+    if not path then
+      return nil, res_err
+    end
+
+    local ok, err = loadfile(path)
+
+    if not ok then
+      return nil, err
+    end
+
+    local args = table.pack(...)
+    local id = rc.thread.add(function()
+      return callCommand(ok, table.unpack(args, 1, args.n))
+    end, command)
+
+    repeat rc.sleep(0.05) until not rc.thread.exists(id)
+  end
+
 
   return true
 end

@@ -30,26 +30,24 @@ function tu.formatTime(time, _24h)
   return os.date(fmt, time)
 end
 
-function tu.pagedPrint(text, free_lines)
+function tu.pagedPrint(text)
   rc.expect(1, text, "string")
-  rc.expect(2, free_lines, "number", "nil")
 
-  free_lines = free_lines or 0
-  rc.term.scroll(free_lines + 1)
-  local _, y = rc.term.getCursorPos()
   local _, h = rc.term.getSize()
-  rc.term.setCursorPos(1, y - free_lines)
 
   local realTotal = 0
   local total = 0
+
   for c in (text .. "\n"):gmatch(".") do
     local writ = rc.write(c)
     total = total + writ
     realTotal = realTotal + writ
+
     if total >= h - 2 then
       rc.write("Press any key to continue")
       os.pullEvent("key")
-      rc.write("\n")
+      local _, y = rc.term.getCursorPos()
+      rc.term.setCursorPos(1, y)
       total = 0
     end
   end
@@ -86,7 +84,8 @@ local function tabulate(paged, ...)
 
   local line = ""
 
-  local prt = paged and tu.pagedPrint or print
+  local prt = paged and function(text)
+    tu.pagedPrint(text,select(2,rc.term.getCursorPos())-2)end or print
 
   for i=1, #linear, 1 do
     local lini = linear[i]
@@ -115,6 +114,10 @@ local function tabulate(paged, ...)
         line = line .. pad(lini, max_len)
       end
     end
+  end
+
+  if #line > 0 then
+    prt(line)
   end
 end
 

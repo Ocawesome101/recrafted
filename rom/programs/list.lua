@@ -34,4 +34,4 @@ for i=1, #raw_files, 1 do
   end
 end
 
-textutils.tabulate(colors.green, dirs, colors.white, files)
+textutils.pagedTabulate(colors.green, dirs, colors.white, files)

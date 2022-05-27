@@ -27,7 +27,12 @@ while run do
   end
 
   if ok then
-    print(select(2, pcall(ok)))
+    local result = table.pack(pcall(ok))
+    if not result[1] then
+      printError(result[2])
+    elseif result.n > 1 then
+      print(table.unpack(result, 2, result.n))
+    end
   else
     printError(err)
   end

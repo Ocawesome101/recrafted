@@ -116,7 +116,13 @@ function term.read(replace, history, complete, default)
 
     if evt == "char" then
       dirty = true
-      buffer = buffer .. id
+      if cursor_pos == 0 then
+        buffer = buffer .. id
+      elseif cursor_pos == #buffer then
+        buffer = id .. buffer
+      else
+        buffer = buffer:sub(0, -cursor_pos - 1)..id..buffer:sub(-cursor_pos)
+      end
 
     elseif evt == "key" then
       id = keys.getName(id)
@@ -136,7 +142,7 @@ function term.read(replace, history, complete, default)
           history[hist_pos] = buffer
           hist_pos = hist_pos - 1
 
-          buffer = (" "):rep(buffer)
+          buffer = (" "):rep(#buffer)
           full_redraw(true)
 
           buffer = history[hist_pos]
@@ -150,7 +156,7 @@ function term.read(replace, history, complete, default)
           history[hist_pos] = buffer
           hist_pos = hist_pos + 1
 
-          buffer = (" "):rep(buffer)
+          buffer = (" "):rep(#buffer)
           full_redraw(true)
 
           buffer = history[hist_pos]

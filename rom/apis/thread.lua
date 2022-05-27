@@ -15,7 +15,7 @@ function rc.thread.add(func, name)
   rc.expect(2, name, "string", "nil")
 
   local cur = threads[current] or {
-    dir = "/",
+    dir = "",
     vars = {}
   }
 
@@ -68,6 +68,11 @@ function rc.thread.info()
   return running
 end
 
+function rc.thread.exists(_id)
+  rc.expect(1, id, "number")
+  return not not threads[_id]
+end
+
 local yield = coroutine.yield
 function rc.thread.start()
   if isRunning then
@@ -86,6 +91,10 @@ function rc.thread.start()
         rc.printError(string.format("thread %d (%s): %s", _id, thread.name,
           result[2]))
         threads[_id] = nil
+
+      elseif coroutine.status(thread.coro) == "dead" then
+        threads[_id] = nil
+
       end
     end
   end

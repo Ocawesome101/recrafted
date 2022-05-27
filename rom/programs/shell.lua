@@ -17,8 +17,17 @@ term.setTextColor(colors.white)
 shell.init()
 
 local aliases = {
+  background = "bg",
+  clr = "clear",
+  cp = "copy",
+  dir = "list",
+  foreground = "fg",
   ls = "list",
-  dir = "list"
+  mv = "move",
+  rm = "delete",
+  rs = "redstone",
+  sh = "shell",
+  ps = "threads"
 }
 
 for k, v in pairs(aliases) do
