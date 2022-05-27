@@ -15,7 +15,7 @@ function rc.thread.add(func, name)
   rc.expect(2, name, "string", "nil")
 
   local cur = threads[current] or {
-    dir = "",
+    dir = "/",
     vars = {}
   }
 

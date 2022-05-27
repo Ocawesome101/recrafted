@@ -116,7 +116,7 @@ function shell.resolve(path)
     return path
   end
 
-  return fs.combine(rc.dir(), path)
+  return "/" .. fs.combine(rc.dir(), path)
 end
 
 function shell.resolveProgram(path)
