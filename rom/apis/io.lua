@@ -1,6 +1,7 @@
 -- rc.io
 
 local rc = require("rc")
+local colors = require("colors")
 
 local io = {}
 
@@ -70,11 +71,12 @@ function _file:flush()
 end
 
 function _file:close()
+  self.closed = true
   pcall(self.handle.close)
 end
 
 local function iofile(handle)
-  return setmetatable({handle = handle}, {__index = _file})
+  return setmetatable({handle = handle, closed = false}, {__index = _file})
 end
 
 local stdin_rbuf = ""
@@ -107,11 +109,31 @@ io.stdout = iofile {
   write = rc.write
 }
 
+io.stderr = iofile {
+  write = function(text)
+    local old = rc.term.getTextColor()
+    rc.term.setTextColor(colors.red)
+    rc.write(text)
+    rc.term.setTextColor(old)
+  end
+}
+
 function io.open(file, mode)
+  rc.expect(1, file, "string")
+  rc.expect(2, mode, "string", "nil")
+
+  mode = (mode or "r"):match("[rwa]") .. "b"
+
+  local handle, err = rc.fs.open(file, mode)
+  if not handle then
+    return nil, err
+  end
+
+  return iofile(handle)
 end
 
 function io.input(file)
-  rc.expect(1, file, "string", "table")
+  rc.expect(1, file, "string", "table", "nil")
   local vars = rc.vars()
   if type(file) == "string" then file = assert(io.open(file, "r")) end
   if file then vars.input = file end
@@ -119,7 +141,7 @@ function io.input(file)
 end
 
 function io.output(file)
-  rc.expect(1, file, "string", "table")
+  rc.expect(1, file, "string", "table", "nil")
   local vars = rc.vars()
   if type(file) == "string" then file = assert(io.open(file, "w")) end
   if file then vars.output = file end
@@ -132,6 +154,40 @@ end
 
 function io.write(...)
   return io.output():write(...)
+end
+
+function io.flush(file)
+  rc.expect(1, file, "table", "nil")
+  return (file or io.output):flush()
+end
+
+function io.close(file)
+  rc.expect(1, file, "table", "nil")
+  return (file or io.output):close()
+end
+
+function io.lines(file, ...)
+  rc.expect(1, file, "string", "nil")
+  if file then file = assert(io.open(file, "r")) end
+  local formats = table.pack(...)
+  return function()
+    return (file or io.stdin):read(table.unpack(formats, 1, formats.n))
+  end
+end
+
+function io.type(obj)
+  if type(obj) == "table" then
+    local is_file = true
+    for k, v in pairs(_file) do
+      if (not obj[k]) or v ~= obj[k] then
+        is_file = false
+      end
+    end
+
+    if is_file then
+      return obj.closed and "closed file" or "file"
+    end
+  end
 end
 
 return io

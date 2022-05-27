@@ -113,3 +113,5 @@ function _G.require(mod)
 
   error(serr, 2)
 end
+
+_G.io = require("io")

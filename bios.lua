@@ -51,8 +51,8 @@ function rc.write(text)
   end
 
   while #text > 0 do
-    local nl = text:find("\n") or (#text - 1)
-    local chunk = text:sub(1, nl + 1)
+    local nl = text:find("\n") or #text
+    local chunk = text:sub(1, nl)
     text = text:sub(#chunk + 1)
 
     local has_nl = chunk:sub(-1) == "\n"
@@ -182,5 +182,5 @@ end, "shell")
 
 print("Starting coroutine manager.")
 
-os.queueEvent("init")
+rc.queueEvent("init")
 thread.start()

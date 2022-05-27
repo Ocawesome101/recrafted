@@ -35,3 +35,4 @@ end
 
 os.sleep = rc.sleep
 os.version = rc.version
+os.exit = require("shell").exit
