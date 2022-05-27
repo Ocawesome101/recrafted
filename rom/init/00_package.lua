@@ -115,3 +115,4 @@ function _G.require(mod)
 end
 
 _G.io = require("io")
+package.loaded.colours = require("colors")
