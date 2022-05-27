@@ -3,7 +3,7 @@
 local dir = ...
 
 local fs = require("fs")
-local shell = require("rc")
+local shell = require("shell")
 local colors = require("colors")
 local settings = require("settings")
 local textutils = require("textutils")

@@ -1,6 +1,6 @@
--- define rc.expect/cc.expect
+-- cc.expect
 
-local rc = ...
+local rc = require("rc")
 
 local _expect = {}
 
@@ -53,5 +53,4 @@ setmetatable(_expect, {__call = function(_, ...)
 end})
 
 rc.expect = _expect.expect
-package.loaded.expect = _expect
-package.loaded["cc.expect"] = _expect
+return _expect

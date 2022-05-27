@@ -37,7 +37,7 @@ local old = rc.http
 local http = {}
 
 rc.http = http
-local field = require("expect").field
+local field = require("cc.expect").field
 
 local function listenForResponse(url)
   while true do

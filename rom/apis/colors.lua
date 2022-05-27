@@ -2,7 +2,7 @@
 
 local rc = require("rc")
 local bit32 = require("bit32")
-local expect = require("expect")
+local expect = require("cc.expect")
 
 local colors = {
   white     = 0x1,

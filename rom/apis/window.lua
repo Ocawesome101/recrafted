@@ -15,8 +15,12 @@ local function into_buffer(buf, x, y, text)
     x = 1
   end
   local olen = #buf[y]
-  buf[y] = (buf[y]:sub(0, math.max(0, x-1)) .. text .. buf[y]:sub(x + #text))
-    :sub(1, olen)
+  if x + #text > olen then
+    buf[y] = buf[y]:sub(0, math.max(0, x-1)) .. text
+  else
+    buf[y] = buf[y]:sub(0, math.max(0, x-1)) .. text .. buf[y]:sub(x + #text)
+  end
+  buf[y] = buf[y]:sub(1, olen)
 end
 
 function window.create(parent, x, y, width, height, visible)
@@ -79,8 +83,8 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, fg)
     into_buffer(bgbuf, cursorX, cursorY, bg)
-    cursorX = math.min(cursorX + #text, width)
-    if visible then draw() end
+    cursorX = math.min(cursorX + #text, width + 1)
+    if visible then win.redraw() end
   end
 
   function win.blit(text, tcol, bcol)
@@ -92,18 +96,23 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, tcol)
     into_buffer(bgbuf, cursorX, cursorY, bcol)
-    cursorX = math.min(cursorX + #text, width)
-    if visible then draw() end
+    cursorX = math.min(cursorX + #text, width + 1)
+    if visible then win.redraw() end
   end
 
   function win.clear()
     local fore = string.rep(foreground, width)
     local back = string.rep(background, width)
     local blank = string.rep(" ", width)
+
     for i=1, height, 1 do
       textbuf[i] = blank
       fgbuf[i] = fore
       bgbuf[i] = back
+    end
+
+    if visible then
+      win.redraw()
     end
   end
 
@@ -115,6 +124,13 @@ function window.create(parent, x, y, width, height, visible)
 
   function win.getCursorPos()
     return cursorX, cursorY
+  end
+
+  function win.setCursorPos(_x, _y)
+    expect(1, _x, "number")
+    expect(2, _y, "number")
+    cursorX, cursorY = _x, _y
+    restoreCursorPos()
   end
 
   function win.setCursorBlink(blink)
@@ -210,7 +226,7 @@ function window.create(parent, x, y, width, height, visible)
     end
 
     if visible then
-      draw()
+      win.redraw()
     end
   end
 
@@ -266,7 +282,7 @@ function window.create(parent, x, y, width, height, visible)
 
   local function resize_buffer(buf, nw, nh)
     if nh > height then
-      for i=1, nh - height, 1 do
+      for _=1, nh - height, 1 do
         buf[#buf+1] = buf[#buf]
       end
     end

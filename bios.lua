@@ -175,10 +175,15 @@ for _, file in ipairs(files) do
 end
 
 local thread = require("thread")
+local settings = require("settings")
 
-thread.add(function()
-  dofile("/rom/programs/shell.lua")
-end, "shell")
+if settings.get("bios.use_multishell") then
+  require("multishell").launch(nil, "/rom/programs/shell.lua")
+else
+  thread.add(function()
+    dofile("/rom/programs/shell.lua")
+  end, "shell")
+end
 
 print("Starting coroutine manager.")
 

@@ -36,6 +36,7 @@ end
 
 while true do
   term.setTextColor(colors.yellow)
+  term.setBackgroundColor(colors.black)
   write(shell.dir().."> ")
   term.setTextColor(colors.white)
 

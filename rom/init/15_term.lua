@@ -3,8 +3,9 @@
 
 local rc = ...
 
+-- we need a couple of these
+local thread = require("thread")
 local native = rc.term
-local redirect = rc.term
 
 local term = {}
 rc.term = term
@@ -38,6 +39,7 @@ local valid = {
 
 for k in pairs(valid) do
   term[k] = function(...)
+    local redirect = thread.getTerm()
     if not redirect[k] then
       error("redirect object does not implement term."..k, 2)
     end
@@ -47,14 +49,16 @@ for k in pairs(valid) do
 end
 
 function term.current()
-  return redirect
+  return thread.getTerm()
+end
+
+function term.native()
+  return native
 end
 
 function term.redirect(obj)
   rc.expect(1, obj, "table")
-  local old = redirect
-  redirect = obj
-  return old
+  return thread.setTerm(obj)
 end
 
 local keys = require("keys")

@@ -4,9 +4,10 @@ local shell = {}
 
 local rc = require("rc")
 local fs = require("fs")
+local thread = require("thread")
 
 function shell.init()
-  local vars = rc.vars()
+  local vars = thread.vars()
 
   if vars.aliases then
     local old = vars.aliases
@@ -26,21 +27,63 @@ local builtins = {
     else
       print(shell.dir())
     end
+  end,
+
+  exit = function()
+    shell.exit()
   end
 }
 
 local function callCommand(command, func, ...)
-  rc.vars().program = command
+  thread.vars().program = command
 
   local success, prog_err = pcall(func, ...)
 
-  rc.vars().program = "shell"
+  thread.vars().program = "shell"
 
   if not success then
     return nil, prog_err
   end
 
   return true
+end
+
+local function execProgram(fork, command, ...)
+  local path, res_err = shell.resolveProgram(command)
+  if not path then
+    return nil, res_err
+  end
+
+  local ok, err = loadfile(path)
+
+  if not ok then
+    return nil, err
+  end
+
+  if fork then
+    local args = table.pack(...)
+    local result
+    local id = thread.add(function()
+      shell.init()
+      result = table.pack(callCommand(command, ok,
+        table.unpack(args, 1, args.n)))
+    end, command)
+
+    repeat rc.sleep(0.05) until not thread.exists(id)
+
+    if result then
+      return table.unpack(result, 1, result.n)
+    end
+
+  else
+    return callCommand(command, ok, ...)
+  end
+end
+
+-- execute a command, but do NOT fork
+function shell.exec(command, ...)
+  rc.expect(1, command, "string")
+  return execProgram(false, command, ...)
 end
 
 function shell.execute(command, ...)
@@ -51,30 +94,7 @@ function shell.execute(command, ...)
     return callCommand(command, func, ...)
 
   else
-    local path, res_err = shell.resolveProgram(command)
-    if not path then
-      return nil, res_err
-    end
-
-    local ok, err = loadfile(path)
-
-    if not ok then
-      return nil, err
-    end
-
-    local args = table.pack(...)
-    local result
-    local id = rc.thread.add(function()
-      shell.init()
-      result = table.pack(callCommand(command, ok,
-        table.unpack(args, 1, args.n)))
-    end, command)
-
-    repeat rc.sleep(0.05) until not rc.thread.exists(id)
-
-    if result then
-      return table.unpack(result, 1, result.n)
-    end
+    return execProgram(true, command, ...)
   end
 
   return true
@@ -94,25 +114,25 @@ end
 
 -- difference: this exits the current thread on next yield
 function shell.exit()
-  rc.thread.remove(rc.thread.id())
+  thread.remove(thread.id())
 end
 
 function shell.dir()
-  return rc.dir()
+  return thread.dir()
 end
 
 function shell.setDir(dir)
   rc.expect(1, dir, "string")
-  return rc.setDir(shell.resolve(dir))
+  return thread.setDir(shell.resolve(dir))
 end
 
 function shell.path()
-  return rc.vars().path
+  return thread.vars().path
 end
 
 function shell.setPath(path)
   rc.expect(1, path, "string")
-  rc.vars().path = path
+  thread.vars().path = path
 end
 
 function shell.resolve(path)
@@ -122,13 +142,13 @@ function shell.resolve(path)
     return path
   end
 
-  return "/" .. fs.combine(rc.dir(), path)
+  return "/" .. fs.combine(thread.dir(), path)
 end
 
 function shell.resolveProgram(path)
   rc.expect(1, path, "string")
 
-  local aliases = rc.vars().aliases
+  local aliases = thread.vars().aliases
   if aliases[path] then
     path = aliases[path]
   end
@@ -137,7 +157,7 @@ function shell.resolveProgram(path)
     return path
   end
 
-  for search in rc.vars().path:gmatch("[^:]+") do
+  for search in thread.vars().path:gmatch("[^:]+") do
     local try = fs.combine(search, path .. ".lua")
     if fs.exists(try) and not fs.isDir(try) then
       return try
@@ -152,7 +172,7 @@ function shell.programs(hidden)
 
   local programs = {}
 
-  for search in rc.vars().path:gmatch("[^:]+") do
+  for search in thread.vars().path:gmatch("[^:]+") do
     local files = fs.list(search)
     for i=1, #files, 1 do
       programs[#programs+1] = files[i]:match("^(.+)%.lua$")
@@ -179,24 +199,24 @@ function shell.getCompletionInfo()
 end
 
 function shell.getRunningProgram()
-  return rc.vars().program
+  return thread.vars().program
 end
 
 function shell.setAlias(command, program)
   rc.expect(1, command, "string")
   rc.expect(2, program, "string")
 
-  rc.vars().aliases[command] = program
+  thread.vars().aliases[command] = program
 end
 
 function shell.clearAlias(command)
   rc.expect(1, command, "string")
 
-  rc.vars().aliases[command] = nil
+  thread.vars().aliases[command] = nil
 end
 
 function shell.aliases()
-  return rc.vars().aliases
+  return thread.vars().aliases
 end
 
 function shell.openTab(...)

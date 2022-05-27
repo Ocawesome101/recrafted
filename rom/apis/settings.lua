@@ -1,7 +1,7 @@
 -- rc.settings
 
 local rc = require("rc")
-local expect = require("expect")
+local expect = require("cc.expect")
 
 local settings = {}
 local defs = {}
