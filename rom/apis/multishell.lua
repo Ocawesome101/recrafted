@@ -2,6 +2,8 @@
 
 local api = {}
 local fs = require("fs")
+local rc = require("rc")
+local keys = require("keys")
 local term = require("term")
 local colors = require("colors")
 local expect = require("cc.expect").expect
@@ -108,10 +110,63 @@ local mouse_events = {
 }
 
 local raw_yield = coroutine.yield
-function api.launch(_, path, ...)
-  expect(1, path, "string")
+local alt_is_down = false
 
-  local args = table.pack(...)
+local function tryEvent(sig, result)
+  local shouldReturn = true
+
+  -- TODO this code feels pretty jank
+  if mouse_events[sig] then
+    local x, y = result[3], result[4]
+    if #tabs > 1 then
+      y = y - 1
+      if y == 0 then
+        shouldReturn = false
+        local _x = 0
+        for i=1, #tabs, 1 do
+          _x = _x + #tabs[i].title + 2
+          if x <= _x then
+            switch(i)
+            break
+          end
+        end
+      end
+    end
+  elseif sig == "key" or sig == "key_up" then
+    if result[2] == keys.leftAlt or result[2] == keys.rightAlt then
+      alt_is_down = sig == "key"
+    elseif alt_is_down and sig == "key" then
+      alt_is_down = false
+      if result[2] == keys.left then
+        if focused > 1 then
+          shouldReturn = false
+          switch(focused - 1)
+        end
+      elseif result[2] == keys.right then
+        if focused < #tabs then
+          shouldReturn = false
+          switch(focused + 1)
+        end
+      end
+    end
+  end
+
+  return shouldReturn
+end
+
+function api.launch(env, path, ...)
+  expect(1, env, "string", "table", "nil")
+  if type(env) ~= "string" then expect(2, path, "string") end
+
+  local args
+  if type(env) == "string" then
+    args = table.pack(path, ...)
+    path = env
+    env = nil
+  else
+    args = table.pack(...)
+  end
+
   local tab = {}
 
   local function yield(...)
@@ -123,25 +178,7 @@ function api.launch(_, path, ...)
 
       local sig = result[1]
       if (not(key_events[sig] or mouse_events[sig])) or focused == tab.id then
-        local shouldReturn = true
-
-        if mouse_events[sig] then
-          local x, y = result[3], result[4]
-          if #tabs > 1 then
-            y = y - 1
-            if y == 0 then
-              shouldReturn = false
-              local _x = 0
-              for i=1, #tabs, 1 do
-                _x = _x + #tabs[i].title + 2
-                if x <= _x then
-                  switch(i)
-                  break
-                end
-              end
-            end
-          end
-        end
+        local shouldReturn = tryEvent(sig, result)
 
         if shouldReturn then
           coroutine.yield = yield
@@ -162,6 +199,8 @@ function api.launch(_, path, ...)
     current = tab.id
     sh.exec(path, table.unpack(args, 1, args.n))
   end
+
+  if rc.lua51 and env then rc.lua51.setfenv(exec, env) end
 
   tab_id = tab_id + 1
   local tabcount = #tabs
