@@ -2,6 +2,7 @@
 
 local rc = require("rc")
 local expect = require("cc.expect")
+local textutils = require("textutils")
 
 local settings = {}
 local defs = {}
@@ -36,7 +37,13 @@ end
 
 function settings.get(name, default)
   rc.expect(1, name, "string")
-  return set[name] or default or defs[name] and defs[name].default
+  if set[name] ~= nil then
+    return set[name]
+  elseif default ~= nil then
+    return default
+  else
+    return defs[name] and defs[name].default
+  end
 end
 
 function settings.getDetails(name)
@@ -80,7 +87,7 @@ function settings.load(path)
   local data = handle.readAll()
   handle.close()
 
-  local new = rc.textutils.unserialize(data)
+  local new = textutils.unserialize(data)
   if not new then return false end
   for k, v in pairs(new) do
     set[k] = v
@@ -93,7 +100,7 @@ function settings.save(path)
   rc.expect(1, path, "string", "nil")
 
   path = path or ".settings"
-  local data = rc.textutils.serialize(set)
+  local data = textutils.serialize(set)
 
   local handle = rc.fs.open(path, "w")
   if not handle then return false end

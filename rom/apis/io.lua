@@ -1,6 +1,7 @@
 -- rc.io
 
 local rc = require("rc")
+local thread = require("thread")
 local colors = require("colors")
 
 local io = {}
@@ -134,7 +135,7 @@ end
 
 function io.input(file)
   rc.expect(1, file, "string", "table", "nil")
-  local vars = rc.vars()
+  local vars = thread.vars()
   if type(file) == "string" then file = assert(io.open(file, "r")) end
   if file then vars.input = file end
   return vars.input or io.stdin
@@ -142,7 +143,7 @@ end
 
 function io.output(file)
   rc.expect(1, file, "string", "table", "nil")
-  local vars = rc.vars()
+  local vars = thread.vars()
   if type(file) == "string" then file = assert(io.open(file, "w")) end
   if file then vars.output = file end
   return vars.output or io.stdout

@@ -84,8 +84,7 @@ local function tabulate(paged, ...)
 
   local line = ""
 
-  local prt = paged and function(text)
-    tu.pagedPrint(text,select(2,rc.term.getCursorPos())-2)end or print
+  local prt = paged and tu.pagedPrint or print
 
   for i=1, #linear, 1 do
     local lini = linear[i]
@@ -185,7 +184,8 @@ end
 
 function tu.unserialize(s)
   rc.expect(1, s, "string")
-  return load("return " .. s, "=<unserialize>", "t", {})
+  local call = load("return " .. s, "=<unserialize>", "t", {})
+  if call then return call() end
 end
 
 tu.serialise = tu.serialize
@@ -212,6 +212,19 @@ end
 
 function tu.complete()
   error("not yet implemented")
+end
+
+function tu.coloredPrint(...)
+  local args = table.pack(...)
+  local lines = 0
+  for i=1, args.n, 1 do
+    if type(args[i]) == "number" then
+      rc.term.setTextColor(args[i])
+    else
+      lines = lines + rc.write(args[i])
+    end
+  end
+  return lines
 end
 
 return tu

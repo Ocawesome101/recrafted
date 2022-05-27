@@ -9,7 +9,9 @@ legally  bound  to  license  them  under  the CCPL.
 All  APIs  are  implemented  as  described  on  the
 CC: Tweaked wiki at https://tweaked.cc, with slight
 modifications   to  fit  Recrafted's   API  design.
-None of  Recrafted's  code is  taken from  CraftOS.
+Certain modules  not  written  by  Dan200 have been
+adapted from  CraftOS,   relicensed  under  the MIT
+license with permission from their authors.
 
 
 Recrafted addresses several  major pain points many
@@ -20,4 +22,4 @@ os.loadAPI has been  altogether discarded;  none of
 the APIs provided by  the  system are inserted into
 _G at  boot--instead  they  must  be  loaded  using
 require(), as per Lua convention.   And, of course,
-the pesky CCPL is no longer present.
+the CCPL is no longer present.
