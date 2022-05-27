@@ -29,12 +29,13 @@ local builtins = {
   end
 }
 
-local function callCommand(func, ...)
+local function callCommand(command, func, ...)
   rc.vars().program = command
 
   local success, prog_err = pcall(func, ...)
 
   rc.vars().program = "shell"
+
   if not success then
     return nil, prog_err
   end
@@ -47,7 +48,7 @@ function shell.execute(command, ...)
 
   if builtins[command] then
     local func = builtins[command]
-    return callCommand(func, ...)
+    return callCommand(command, func, ...)
   else
     local path, res_err = shell.resolveProgram(command)
     if not path then
@@ -62,7 +63,8 @@ function shell.execute(command, ...)
 
     local args = table.pack(...)
     local id = rc.thread.add(function()
-      return callCommand(ok, table.unpack(args, 1, args.n))
+      shell.init()
+      return callCommand(command, ok, table.unpack(args, 1, args.n))
     end, command)
 
     repeat rc.sleep(0.05) until not rc.thread.exists(id)
