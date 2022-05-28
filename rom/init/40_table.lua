@@ -1,0 +1,1 @@
+setmetatable({},{__index=table})
