@@ -21,6 +21,14 @@ rc.term = rm("term")
 rc.fs = rm("fs")
 rc.rs = rm("rs")
 
+-- CraftOS-PC APIs
+rc.periphemu = rm("periphemu")
+rc.mounter = rm("mounter")
+rc.config = rm("config")
+
+-- CCEmuX API
+rc.ccemux = rm("ccemux")
+
 function rc.version()
   return "Recrafted 1.0"
 end
@@ -165,7 +173,7 @@ function _G.dofile(file)
   return _assert(loadfile(file))()
 end
 
-print("Loading startup scripts.")
+print("Loading initialization scripts.")
 
 local files = rc.fs.list(rc._ROM_DIR.."/init")
 table.sort(files)
@@ -196,6 +204,33 @@ else
     thread.add(function()
       dofile("/rom/programs/shell.lua")
     end, "shell")
+  end
+end
+
+if rc.fs.exists("/startup.lua") then
+  print("Executing startup.lua")
+
+  local ok, err = pcall(dofile, "/startup.lua")
+  if not ok then
+    rc.printError(err)
+    rc.sleep(1)
+  end
+end
+
+if rc.fs.exists("/startup") then
+  if not rc.fs.isDir("/startup") then
+    rc.printError("/startup is not a directory")
+    rc.sleep(1)
+  else
+    print("Loading startup scripts.")
+
+    local startup = rc.fs.list("/startup")
+    table.sort(startup)
+    for i=1, #startup, 1 do
+      thread.add(function()
+        dofile("/startup/"..startup[i])
+      end)
+    end
   end
 end
 

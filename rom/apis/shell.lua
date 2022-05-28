@@ -12,7 +12,12 @@ function shell.init()
 
   if vars.aliases then
     local old = vars.aliases
-    vars.aliases = setmetatable({}, {__index = old})
+
+    vars.aliases = {}
+    for k, v in pairs(old) do
+      vars.aliases[k] = v
+    end
+
   else
     vars.aliases = {}
   end

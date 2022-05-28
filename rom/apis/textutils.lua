@@ -1,6 +1,8 @@
 -- rc.textutils
 
 local rc = require("rc")
+local term = require("term")
+local colors = require("colors")
 
 local tu = {}
 
@@ -30,29 +32,53 @@ function tu.formatTime(time, _24h)
   return os.date(fmt, time)
 end
 
-function tu.pagedPrint(text)
-  rc.expect(1, text, "string")
-
+local function pagedWrite(text)
   local _, h = rc.term.getSize()
 
   local realTotal = 0
   local total = 0
 
-  for c in (text .. "\n"):gmatch(".") do
+  for c in text:gmatch(".") do
     local writ = rc.write(c)
     total = total + writ
     realTotal = realTotal + writ
 
     if total >= h - 2 then
+      local old = term.getTextColor()
+      term.setTextColor(colors.white)
       rc.write("Press any key to continue")
+      term.setTextColor(old)
       os.pullEvent("key")
-      local _, y = rc.term.getCursorPos()
-      rc.term.setCursorPos(1, y)
+      local _, y = term.getCursorPos()
+      term.setCursorPos(1, y)
+      term.clearLine()
       total = 0
     end
   end
 
   return realTotal
+end
+
+function tu.pagedPrint(text)
+  rc.expect(1, text, "string")
+  return pagedWrite(text .. "\n")
+end
+
+local function coloredWrite(paged, ...)
+  local args = table.pack(...)
+  local lines = 0
+
+  local write = paged and pagedWrite or rc.write
+
+  for i=1, args.n, 1 do
+    if type(args[i]) == "number" then
+      rc.term.setTextColor(args[i])
+    else
+      lines = lines + write(args[i])
+    end
+  end
+
+  return lines
 end
 
 local function pad(t, w)
@@ -73,8 +99,22 @@ local function tabulate(paged, ...)
 
     if type(argi) == "table" then
       for n=1, #argi, 1 do
-        linear[#linear+1] = rc.expect(n, argi[n], "string")
-        max_len = math.max(max_len, #argi[n] + 2)
+        if type(argi[n]) == "table" then
+          local total_len = 2
+          local argin = argi[n]
+
+          for j=1, #argin, 1 do
+            if type(argin[j]) == "string" then
+              total_len = total_len + #argin[j]
+            end
+          end
+
+          max_len = math.max(max_len, total_len)
+
+        else
+          linear[#linear+1] = rc.expect(n, argi[n], "string")
+          max_len = math.max(max_len, #argi[n] + 2)
+        end
       end
 
     else
@@ -84,7 +124,13 @@ local function tabulate(paged, ...)
 
   local line = ""
 
-  local prt = paged and tu.pagedPrint or print
+  local prt = paged and function(_args)
+    if type(_args) == "string" then _args = {_args} end
+    return coloredWrite(true, table.unpack(_args))
+  end or function(_args)
+    if type(_args) == "string" then _args = {_args} end
+    return coloredWrite(false, table.unpack(_args))
+  end
 
   for i=1, #linear, 1 do
     local lini = linear[i]
@@ -98,8 +144,9 @@ local function tabulate(paged, ...)
       rc.term.setTextColor(lini)
 
     else
+      local len = type(lini) == "table" and lini.total_len or #lini
       if #line + max_len > w then
-        if #line + #lini > w then
+        if #line + len > w then
           prt(line)
           line = pad(lini, max_len)
 
@@ -215,16 +262,7 @@ function tu.complete()
 end
 
 function tu.coloredPrint(...)
-  local args = table.pack(...)
-  local lines = 0
-  for i=1, args.n, 1 do
-    if type(args[i]) == "number" then
-      rc.term.setTextColor(args[i])
-    else
-      lines = lines + rc.write(args[i])
-    end
-  end
-  return lines
+  return coloredWrite(false, ...) + rc.write("\n")
 end
 
 return tu
