@@ -23,3 +23,9 @@ the APIs provided by  the  system are inserted into
 _G at  boot--instead  they  must  be  loaded  using
 require(), as per Lua convention.   And, of course,
 the CCPL is no longer present.
+
+For  questions  about Recrafted,  or  generally  to
+discuss   it  in  greater  depth,  please  use  the
+#recrafted   channel   in  my  Discord   guild   at
+https://discord.gg/6kXmSAcPWC.
+
