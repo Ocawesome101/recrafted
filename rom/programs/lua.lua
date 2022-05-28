@@ -11,8 +11,7 @@ function env.exit() run = false end
 
 term.setTextColor(colors.yellow)
 
-print("Recrafted Lua REPL.\n\z
-Call exit() to exit.")
+print("Recrafted Lua REPL.\nCall exit() to exit.")
 
 local history = {}
 while run do

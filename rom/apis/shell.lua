@@ -5,6 +5,7 @@ local shell = {}
 local rc = require("rc")
 local fs = require("fs")
 local thread = require("thread")
+local settings = require("settings")
 
 function shell.init()
   local vars = thread.vars()
@@ -37,7 +38,12 @@ local builtins = {
 local function callCommand(command, func, ...)
   thread.vars().program = command
 
-  local success, prog_err = pcall(func, ...)
+  local success, prog_err
+  if settings.get("shell.tracebacks") then
+    success, prog_err = xpcall(func, debug.traceback, ...)
+  else
+    success, prog_err = pcall(func, ...)
+  end
 
   thread.vars().program = "shell"
 

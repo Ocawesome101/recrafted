@@ -182,7 +182,7 @@ return {
     programWithArgs = programWithArgs,
 
     -- Re-export various other functions
-    help = wrap(help.completeTopic), --- Wraps @{help.completeTopic} as a @{build} compatible function.
+    --help = wrap(help.completeTopic), --- Wraps @{help.completeTopic} as a @{build} compatible function.
     choice = wrap(completion.choice), --- Wraps @{cc.completion.choice} as a @{build} compatible function.
     peripheral = wrap(completion.peripheral), --- Wraps @{cc.completion.peripheral} as a @{build} compatible function.
     side = wrap(completion.side), --- Wraps @{cc.completion.side} as a @{build} compatible function.

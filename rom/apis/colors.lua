@@ -59,7 +59,9 @@ end
 colors.test = bit32.btest
 
 function colors.packRGB(r, g, b)
-  expect.range(rc.expect(1, r, "number"), 0, 1)
+  rc.expect(1, r, "number")
+  if r > 1 then return r end
+  expect.range(r, 0, 1)
   expect.range(rc.expect(2, g, "number"), 0, 1)
   expect.range(rc.expect(3, b, "number"), 0, 1)
   return (r * 255 * 0x10000) + (g * 255 * 0x100) + (b * 255)

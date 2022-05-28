@@ -34,6 +34,10 @@
 local rc = ...
 local old = rc.http
 
+if not old then
+  return
+end
+
 local http = {}
 
 rc.http = http
@@ -65,7 +69,7 @@ function http.request(url, post, headers, binary, method, sync)
   field(url, "url", "string")
   field(url, "body", "string", "nil")
   field(url, "headers", "table", "nil")
-  field(url, "binary", "boolean")
+  field(url, "binary", "boolean", "nil")
   field(url, "method", "string")
   field(url, "sync", "boolean", "nil")
 

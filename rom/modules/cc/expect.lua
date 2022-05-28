@@ -30,9 +30,6 @@ end
 function _expect.field(tbl, index, ...)
   _expect.expect(1, tbl, "table")
   _expect.expect(2, index, "string")
-  if tbl[index] == nil then
-    error(("field '%s' missing from table"):format(index), 2)
-  end
   return checkType(("%q"):format(index), "field", tbl[index], ...)
 end
 

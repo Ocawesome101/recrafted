@@ -91,17 +91,18 @@ function _G.print(...)
   return rc.write(table.concat(args, "  ") .. "\n")
 end
 
+local red = 0x4000
 function rc.printError(...)
   local old = rc.term.getTextColor()
-  rc.term.setTextColor(require("colors").red)
+  rc.term.setTextColor(red)
   print(...)
   rc.term.setTextColor(old)
 end
 
 -- get rid of Lua 5.1 things.
 if _VERSION == "Lua 5.1" then
+  local old_load = rm("load")
   rc.lua51 = {
-    load = rm("load"),
     loadstring = rm("loadstring"),
     setfenv = rm("setfenv"),
     getfenv = rm("getfenv"),
@@ -124,7 +125,7 @@ if _VERSION == "Lua 5.1" then
     if type(x) == "string" then
       result, err = rc.lua51.loadstring(x, name)
     else
-      result, err = rc.lua51.load(x, name)
+      result, err = old_load(x, name)
     end
 
     if result then
@@ -181,7 +182,7 @@ if settings.get("bios.compat_mode") then
   thread.add(function()
     local sh = require("shell")
     sh.init()
-    sh.run("/rom/programs/craftos.lua", "/rom/programs/shell.lua")
+    print(sh.run("/rom/programs/craftos.lua", "/rom/programs/shell.lua"))
   end)
 else
   -- disallow globals

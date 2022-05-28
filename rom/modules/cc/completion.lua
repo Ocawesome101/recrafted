@@ -7,7 +7,7 @@
 -- @since 1.85.0
 
 local expect = require "cc.expect".expect
-local commands = require("commands")
+--local commands = require("commands")
 local redstone = require("redstone")
 
 local function choice_impl(text, choices, add_space)

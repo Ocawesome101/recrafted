@@ -28,6 +28,7 @@ local function waitForN(num, ...)
 
   local dead = 0
   repeat
+    coroutine.yield()
     for i=#threads, 1, -1 do
       if not thread.exists(threads[i]) then
         table.remove(threads, i)
