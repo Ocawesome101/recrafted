@@ -17,4 +17,13 @@ if #args == 0 then
   end
 
   textutils.pagedTabulate(_aliases)
+
+elseif #args == 1 then
+  shell.clearAlias(args[1])
+
+elseif #args == 2 then
+  shell.setAlias(args[1], args[2])
+
+else
+  error("this program takes a maximum of two arguments", 0)
 end
