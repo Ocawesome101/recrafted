@@ -7,7 +7,7 @@ local colors = require("colors")
 local textutils = require("textutils")
 
 if #args == 0 then
-  textutils.coloredPrint(colors.yellow, "shell aliases\n", colors.white)
+  textutils.coloredPrint(colors.yellow, "shell aliases", colors.white)
 
   local aliases = shell.aliases()
 

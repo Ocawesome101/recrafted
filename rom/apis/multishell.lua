@@ -9,6 +9,7 @@ local colors = require("colors")
 local expect = require("cc.expect").expect
 local thread = require("thread")
 local window = require("window")
+local textutils = require("textutils")
 
 local currentTerm = term.current()
 local w, h = term.getSize()
@@ -19,6 +20,7 @@ local focused = 0
 local current = 0
 
 local function redraw()
+  w, h = currentTerm.getSize()
   for i=#tabs, 1, -1 do
     if not thread.exists(tabs[i].pid) then
       table.remove(tabs, i)
@@ -182,6 +184,7 @@ function api.launch(env, path, ...)
 
         if shouldReturn then
           coroutine.yield = yield
+          tab.interact = true
           current = tab.id
 
           return table.unpack(result, 1, result.n)
@@ -197,7 +200,15 @@ function api.launch(env, path, ...)
     term.redirect(tab.term)
     focused = tab.id
     current = tab.id
-    sh.exec(path, table.unpack(args, 1, args.n))
+    local ok, err = sh.exec(path, table.unpack(args, 1, args.n))
+    if not ok then
+      rc.printError(err)
+    end
+    if not tab.interact then
+      textutils.coloredPrint(colors.yellow, "Press any key continue")
+      os.pullEvent("char")
+      redraw()
+    end
   end
 
   if rc.lua51 and env then rc.lua51.setfenv(exec, env) end
@@ -209,7 +220,8 @@ function api.launch(env, path, ...)
     term = window.create(currentTerm, 1, tabcount > 1 and 2 or 1,
       w, h - (tabcount > 1 and 1 or 0), false),
     pid = thread.add(exec, path),
-    id = tab_id
+    interact = false,
+    id = tab_id,
   }
 
   tabs[tab_id] = tab

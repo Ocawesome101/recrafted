@@ -69,20 +69,19 @@ local function coloredWrite(paged, ...)
   local lines = 0
 
   local write = paged and pagedWrite or rc.write
+  local old = term.getTextColor()
 
   for i=1, args.n, 1 do
     if type(args[i]) == "number" then
-      rc.term.setTextColor(args[i])
+      term.setTextColor(args[i])
     else
       lines = lines + write(args[i])
     end
   end
 
-  return lines
-end
+  term.setTextColor(old)
 
-local function pad(t, w)
-  return t .. string.rep(" ", w - #t)
+  return lines
 end
 
 local function tabulate(paged, ...)
@@ -104,12 +103,16 @@ local function tabulate(paged, ...)
           local argin = argi[n]
 
           for j=1, #argin, 1 do
+            rc.expect(j, argin[j], "string", "number")
             if type(argin[j]) == "string" then
               total_len = total_len + #argin[j]
             end
           end
 
-          max_len = math.max(max_len, total_len)
+          argin.total_len = total_len
+          max_len = math.max(max_len, total_len + 2)
+
+          linear[#linear+1] = argi[n]
 
         else
           linear[#linear+1] = rc.expect(n, argi[n], "string")
@@ -122,13 +125,13 @@ local function tabulate(paged, ...)
     end
   end
 
-  local line = ""
+  local written = 0
 
   local prt = paged and function(_args)
-    if type(_args) == "string" then _args = {_args.."\n"} end
+    if type(_args) == "string" then _args = {_args} end
     return coloredWrite(true, table.unpack(_args))
   end or function(_args)
-    if type(_args) == "string" then _args = {_args.."\n"} end
+    if type(_args) == "string" then _args = {_args} end
     return coloredWrite(false, table.unpack(_args))
   end
 
@@ -136,34 +139,38 @@ local function tabulate(paged, ...)
     local lini = linear[i]
 
     if type(lini) == "number" then
-      if #line > 0 then
-        prt(line)
-        line = ""
+      if written > 0 then
+        prt("\n")
+        written = 0
       end
 
       rc.term.setTextColor(lini)
 
     else
       local len = type(lini) == "table" and lini.total_len or #lini
-      if #line + max_len > w then
-        if #line + len > w then
-          prt(line)
-          line = pad(lini, max_len)
+      if written + max_len > w then
+        if written + len > w then
+          prt("\n")
+          prt(lini)
+          rc.write((" "):rep(max_len - len))
+          written = max_len
 
         else
-          line = line .. lini
-          prt(line)
-          line = ""
+          prt(lini)
+          prt("\n")
+          written = 0
         end
 
       else
-        line = line .. pad(lini, max_len)
+        prt(lini)
+        rc.write((" "):rep(max_len - len))
+        written = written + max_len
       end
     end
   end
 
-  if #line > 0 then
-    prt(line)
+  if written > 0 then
+    prt("\n")
   end
 end
 
