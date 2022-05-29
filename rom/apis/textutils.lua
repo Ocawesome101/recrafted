@@ -125,10 +125,10 @@ local function tabulate(paged, ...)
   local line = ""
 
   local prt = paged and function(_args)
-    if type(_args) == "string" then _args = {_args} end
+    if type(_args) == "string" then _args = {_args.."\n"} end
     return coloredWrite(true, table.unpack(_args))
   end or function(_args)
-    if type(_args) == "string" then _args = {_args} end
+    if type(_args) == "string" then _args = {_args.."\n"} end
     return coloredWrite(false, table.unpack(_args))
   end
 
@@ -259,6 +259,10 @@ end
 
 function tu.complete()
   error("not yet implemented")
+end
+
+function tu.coloredWrite(...)
+  return coloredWrite(false, ...)
 end
 
 function tu.coloredPrint(...)

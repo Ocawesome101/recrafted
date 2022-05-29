@@ -30,13 +30,13 @@ if #args == 0 then
   for _, setting in ipairs(settings.getNames()) do
     local value = settings.get(setting)
     textutils.coloredPrint(colors.cyan, setting, colors.white, " is ",
-      col[type(value)], string.format("%q", value), "\n")
+      col[type(value)], string.format("%q", value))
   end
 elseif #args == 1 then
   local setting = args[1]
   local value = settings.get(setting)
   textutils.coloredPrint(colors.cyan, setting, colors.white, " is ",
-    col[type(value)], string.format("%q", value), "\n")
+    col[type(value)], string.format("%q", value))
 else
   local setting, value = args[1], args[2]
   settings.set(setting, coerce(value))
