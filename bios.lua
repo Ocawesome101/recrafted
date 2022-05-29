@@ -107,6 +107,12 @@ function rc.printError(...)
   rc.term.setTextColor(old)
 end
 
+local _sd = os.shutdown
+function os.shutdown()
+  _sd()
+  while true do coroutine.yield() end
+end
+
 -- get rid of Lua 5.1 things.
 if _VERSION == "Lua 5.1" then
   local old_load = rm("load")

@@ -28,11 +28,18 @@ function threadapi.add(func, name)
   return id
 end
 
+local vars = {}
 function threadapi.vars()
+  if not threads[current] then
+    return vars
+  end
   return threads[current].vars
 end
 
 function threadapi.dir()
+  if not threads[current] then
+    return "/"
+  end
   return threads[current].dir
 end
 
@@ -118,7 +125,8 @@ function threadapi.start()
     end
   end
 
-  rc.printError("all threads have exited")
+  rc.term.redirect(rc.term.native())
+  rc.printError("Shutting down")
   os.sleep(2)
 
   os.shutdown()

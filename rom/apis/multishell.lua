@@ -14,13 +14,12 @@ local textutils = require("textutils")
 local currentTerm = term.current()
 local w, h = term.getSize()
 
-local tab_id = 0
 local tabs = {}
-local focused = 0
+local focused = 2
 local current = 0
 
 local function redraw()
-  w, h = currentTerm.getSize()
+--  w, h = currentTerm.getSize()
   for i=#tabs, 1, -1 do
     if not thread.exists(tabs[i].pid) then
       table.remove(tabs, i)
@@ -31,36 +30,39 @@ local function redraw()
     tabs[i].id = i
   end
 
-  if not tabs[focused] then
-    focused = next(tabs) or focused
+  while focused > 1 and not tabs[focused] do
+    focused = focused - 1
   end
 
   if #tabs > 1 then
     currentTerm.setCursorPos(1, 1)
     currentTerm.setTextColor(colors.black)
     currentTerm.setBackgroundColor(colors.gray)
-    currentTerm.write(string.rep(" ", w))
+    currentTerm.clearLine()
     currentTerm.setCursorPos(1, 1)
     for _, tab in ipairs(tabs) do
       if tab.id == focused then
         currentTerm.setTextColor(colors.yellow)
         currentTerm.setBackgroundColor(colors.black)
-        tab.term.setVisible(true)
       else
         currentTerm.setTextColor(colors.black)
         currentTerm.setBackgroundColor(colors.gray)
-        tab.term.setVisible(false)
       end
       currentTerm.write(" "..tab.title.." ")
     end
+
     for _, tab in ipairs(tabs) do
+      if tab.id == focused then
+        tab.term.setVisible(true)
+      else
+        tab.term.setVisible(false)
+      end
       tab.term.reposition(1, 2, w, h - 1)
     end
   elseif #tabs == 1 then
-    local _, tab = next(tabs)
+    local tab = tabs[1]
     tab.term.reposition(1, 1, w, h)
     tab.term.setVisible(true)
-    tab.term.redraw()
   end
 end
 
@@ -198,36 +200,33 @@ function api.launch(env, path, ...)
     sh.init()
     coroutine.yield = yield
     term.redirect(tab.term)
-    focused = tab.id
     current = tab.id
     local ok, err = sh.exec(path, table.unpack(args, 1, args.n))
     if not ok then
       rc.printError(err)
     end
     if not tab.interact then
-      textutils.coloredPrint(colors.yellow, "Press any key continue")
+      textutils.coloredPrint(colors.yellow, "Press any key to continue")
       os.pullEvent("char")
-      redraw()
     end
+    thread.remove()
   end
 
   if rc.lua51 and env then rc.lua51.setfenv(exec, env) end
 
-  tab_id = tab_id + 1
-  local tabcount = #tabs
+  local tabid = #tabs + 1
   tab = {
     title = fs.getName(path),
-    term = window.create(currentTerm, 1, tabcount > 1 and 2 or 1,
-      w, h - (tabcount > 1 and 1 or 0), false),
+    term = window.create(currentTerm, 1, tabid > 2 and 2 or 1,
+      w, h - (tabid > 2 and 1 or 0), false),
     pid = thread.add(exec, path),
     interact = false,
-    id = tab_id,
+    id = tabid,
   }
 
-  tabs[tab_id] = tab
-  switch(tab_id)
+  tabs[tabid] = tab
 
-  return tab_id
+  return tabid
 end
 
 return api

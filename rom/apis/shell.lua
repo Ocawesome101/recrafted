@@ -123,9 +123,9 @@ function shell.run(...)
   return shell.execute(table.unpack(tokenize(table.concat({...}, " "))))
 end
 
--- difference: this exits the current thread on next yield
+-- difference: this exits the current thread immediately
 function shell.exit()
-  thread.remove(thread.id())
+  thread.remove()
 end
 
 function shell.dir()

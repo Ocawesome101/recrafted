@@ -83,7 +83,7 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, fg)
     into_buffer(bgbuf, cursorX, cursorY, bg)
-    cursorX = math.min(cursorX + #text, width + 1)
+    cursorX = math.max(0, math.min(cursorX + #text, width + 1))
     if visible then win.redraw() end
   end
 
@@ -96,7 +96,7 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, tcol)
     into_buffer(bgbuf, cursorX, cursorY, bcol)
-    cursorX = math.min(cursorX + #text, width + 1)
+    cursorX = math.max(0, math.min(cursorX + #text, width + 1))
     if visible then win.redraw() end
   end
 
@@ -120,6 +120,10 @@ function window.create(parent, x, y, width, height, visible)
     textbuf[cursorY] = string.rep(" ", width)
     fgbuf[cursorY] = string.rep(foreground, width)
     bgbuf[cursorY] = string.rep(background, width)
+
+    if visible then
+      win.redraw()
+    end
   end
 
   function win.getCursorPos()
@@ -129,8 +133,11 @@ function window.create(parent, x, y, width, height, visible)
   function win.setCursorPos(_x, _y)
     expect(1, _x, "number")
     expect(2, _y, "number")
+
     cursorX, cursorY = _x, _y
-    restoreCursorPos()
+    if visible then
+      restoreCursorPos()
+    end
   end
 
   function win.setCursorBlink(blink)
@@ -262,8 +269,8 @@ function window.create(parent, x, y, width, height, visible)
     if visible then
       draw()
       restorePalette()
-      restoreCursorBlink()
       restoreCursorPos()
+      restoreCursorBlink()
       restoreCursorColor()
     end
   end
@@ -281,8 +288,8 @@ function window.create(parent, x, y, width, height, visible)
   end
 
   local function resize_buffer(buf, nw, nh)
-    if nh > height then
-      for _=1, nh - height, 1 do
+    if nh > #buf then
+      for _=1, nh - #buf, 1 do
         buf[#buf+1] = buf[#buf]
       end
     end

@@ -14,4 +14,4 @@ if not path then
   error(err, 0)
 end
 
-multishell.setFocus(multishell.launch(path, table.unpack(args, 2)))
+multishell.launch(path, table.unpack(args, 2))
