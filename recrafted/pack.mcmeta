@@ -1,0 +1,6 @@
+{
+    "pack": {
+        "description": "A saner CraftOS implementation",
+        "pack_format": 4
+    }
+}
