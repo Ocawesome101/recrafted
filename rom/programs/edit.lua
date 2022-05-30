@@ -7,6 +7,7 @@ local term = require("term")
 local shell = require("shell")
 local colors = require("colors")
 local settings = require("settings")
+local textutils = require("textutils")
 
 local scroll_offset = settings.get("edit.scroll_offset")
 
@@ -23,18 +24,20 @@ local state = {
 
 if args[1] then
   local path = shell.resolve(args[1])
-  local handle, err = io.open(path)
-  if not handle then
-    error(args[1] .. ": " .. err, 0)
+  local handle = io.open(path)
+  state.file = path
+
+  if handle then
+    state.lines = {}
+
+    for line in handle:lines() do
+      state.lines[#state.lines+1] = line
+    end
+
+    handle:close()
+
+    if not state.lines[1] then state.lines[1] = "" end
   end
-
-  for line in handle:lines() do
-    state.lines[#state.lines+1] = line
-  end
-
-  handle:close()
-
-  if not state.lines[1] then state.lines[1] = "" end
 end
 
 local function redraw()
@@ -57,7 +60,59 @@ local function redraw()
   term.setCursorPos(state.cx, state.cy - state.scroll)
 end
 
+local run, menu = true, false
+
+local function save()
+  if state.file == ".new" then
+    local _, h = term.getSize()
+    term.setCursorPos(1, h)
+    textutils.coloredWrite(colors.yellow, "filename: ", colors.white)
+    state.file = term.read()
+  end
+
+  local handle, err = io.open(state.file, "w")
+  if not handle then
+    state.status = err
+  else
+    for i=1, #state.lines, 1 do
+      handle:write(state.lines[i] .. "\n")
+    end
+    handle:close()
+    state.status = "Saved to " .. state.file
+    state.unsaved = false
+  end
+end
+
 local function processMenuInput()
+  local event, id = os.pullEvent()
+
+  if event == "char" then
+    if id:lower() == "e" then
+      if state.unsaved and menu ~= 2 then
+        state.status = "Lose unsaved work? E:yes C:no"
+        menu = 2
+      else
+        term.clear()
+        term.setCursorPos(1,1)
+        run = false
+      end
+
+    elseif id:lower() == "c" and menu == 2 then
+      menu = false
+
+    elseif id:lower() == "s" then
+      save()
+      menu = false
+    end
+
+  elseif event == "key" then
+    id = keys.getName(id)
+
+    if id == "leftControl" or id == "rightControl" then
+      state.status = "Press Control for menu"
+      menu = false
+    end
+  end
 end
 
 local function processInput()
@@ -67,7 +122,8 @@ local function processInput()
 
   if event == "char" then
     local line = state.lines[state.cy]
-    if state.cx == #line then
+    state.unsaved = true
+    if state.cx > #line then
       line = line .. id
 
     elseif state.cx == 1 then
@@ -85,17 +141,42 @@ local function processInput()
 
     if id == "backspace" then
       local line = state.lines[state.cy]
-      if #line > 0 then
-        if state.cx == #line then
-          line = line:sub(1, -2)
+      state.unsaved = true
+      if state.cx == 1 and state.cy > 1 then
+        local previous = table.remove(state.lines, state.cy - 1)
+        state.cy = state.cy - 1
+        state.cx = #previous + 1
+        line = previous .. line
+      else
+        if #line > 0 then
+          if state.cx > #line then
+            state.cx = state.cx - 1
+            line = line:sub(1, -2)
 
-        elseif state.cx > 1 then
-          line = line:sub(0, state.cx - 2) .. line:sub(state.cx)
+          elseif state.cx > 1 then
+            line = line:sub(0, state.cx - 2) .. line:sub(state.cx)
+            state.cx = state.cx - 1
+
+          end
+
         end
-        state.cx = state.cx - 1
-
-        state.lines[state.cy] = line
       end
+      state.lines[state.cy] = line
+
+    elseif id == "enter" then
+      if state.cx == 1 then
+        table.insert(state.lines, state.cy, "")
+      elseif state.cx > #state.lines[state.cy] then
+        table.insert(state.lines, state.cy + 1, "")
+      else
+        local line = state.lines[state.cy]
+        local before, after = line:sub(0, state.cx - 1), line:sub(state.cx)
+        state.lines[state.cy] = before
+        table.insert(state.lines, state.cy + 1, after)
+      end
+
+      state.cy = state.cy + 1
+      state.cx = 1
 
     elseif id == "up" then
       if state.cy > 1 then
@@ -129,14 +210,22 @@ local function processInput()
         state.cx = state.cx + 1
       end
 
+    elseif id == "leftControl" or id == "rightControl" then
+      state.status = "S:save  E:exit"
+      menu = true
+
     end
   end
 end
 
 term.clear()
-while true do
+while run do
   term.setCursorBlink(false)
   redraw()
   term.setCursorBlink(true)
-  processInput()
+  if menu then
+    processMenuInput()
+  else
+    processInput()
+  end
 end
