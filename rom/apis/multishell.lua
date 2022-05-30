@@ -19,7 +19,7 @@ local focused = 2
 local current = 0
 
 local function redraw()
---  w, h = currentTerm.getSize()
+  w, h = currentTerm.getSize()
   for i=#tabs, 1, -1 do
     if not thread.exists(tabs[i].pid) then
       table.remove(tabs, i)
@@ -44,6 +44,7 @@ local function redraw()
       if tab.id == focused then
         currentTerm.setTextColor(colors.yellow)
         currentTerm.setBackgroundColor(colors.black)
+        thread.switchForeground(tab.pid)
       else
         currentTerm.setTextColor(colors.black)
         currentTerm.setBackgroundColor(colors.gray)
@@ -223,8 +224,13 @@ function api.launch(env, path, ...)
     interact = false,
     id = tabid,
   }
+  tab.foreground = tab.pid
 
   tabs[tabid] = tab
+
+  if tabid == 1 then
+    thread.pushForeground(tab.pid)
+  end
 
   return tabid
 end

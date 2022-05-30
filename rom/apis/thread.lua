@@ -9,6 +9,7 @@ local threads = {}
 
 local id = 0
 local current = 0
+local foreground = {}
 
 function threadapi.add(func, name)
   rc.expect(1, func, "function")
@@ -81,6 +82,27 @@ function threadapi.remove(tid)
   return true
 end
 
+-- set the "foreground" process (the one that gets events)
+function threadapi.pushForeground(tid)
+  rc.expect(1, tid, "number", "nil")
+  tid = tid or current
+  if not threads[tid] then return false end
+  foreground[#foreground+1] = tid
+  return true
+end
+
+function threadapi.switchForeground(tid)
+  rc.expect(1, tid, "number", "nil")
+  tid = tid or current
+  if not threads[tid] then return false end
+  foreground[#foreground] = tid
+  return true
+end
+
+function threadapi.getForeground()
+  return foreground[#foreground]
+end
+
 function threadapi.id()
   return current
 end
@@ -122,6 +144,10 @@ function threadapi.start()
         threads[_id] = nil
 
       end
+    end
+
+    while #foreground > 0 and not threads[foreground[#foreground]] do
+      foreground[#foreground] = nil
     end
   end
 

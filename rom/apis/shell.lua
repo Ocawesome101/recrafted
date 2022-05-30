@@ -80,6 +80,8 @@ local function execProgram(fork, command, ...)
         table.unpack(args, 1, args.n)))
     end, command)
 
+    thread.pushForeground(id)
+
     repeat rc.sleep(0.05) until not thread.exists(id)
 
     if result then

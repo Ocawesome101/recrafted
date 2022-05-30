@@ -21,4 +21,16 @@ settings.define("bios.compat_mode", {
   default = false
 })
 
+settings.define("shell.tracebacks", {
+  description = "Show error tracebacks in the shell",
+  type = "boolean",
+  default = false
+})
+
+settings.define("edit.scroll_offset", {
+  description = "How many lines to keep between the cursor and the screen edge",
+  type = "number",
+  default = 3
+})
+
 settings.load()

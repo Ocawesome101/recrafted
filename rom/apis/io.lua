@@ -43,6 +43,16 @@ function _file:read(...)
   return table.unpack(ret, 1, args.n)
 end
 
+function _file:lines(...)
+  local formats = {...}
+  if #formats == 0 then
+    formats[1] = "l"
+  end
+  return function()
+    return self:read(table.unpack(formats))
+  end
+end
+
 function _file:write(...)
   local args = table.pack(...)
 
@@ -172,7 +182,7 @@ function io.lines(file, ...)
   if file then file = assert(io.open(file, "r")) end
   local formats = table.pack(...)
   return function()
-    return (file or io.stdin):read(table.unpack(formats, 1, formats.n))
+    return (file or io.stdin):lines(table.unpack(formats, 1, formats.n))
   end
 end
 

@@ -2,6 +2,8 @@
 
 local rc = ...
 
+local thread = require("thread")
+
 rc.queueEvent = os.queueEvent
 
 function os.pullEventRaw(filter)
@@ -18,7 +20,7 @@ function os.pullEvent(filter)
   local event
   repeat
     event = table.pack(coroutine.yield())
-    if event[1] == "terminate" then
+    if event[1] == "terminate" and thread.id() == thread.getForeground() then
       error("terminated", 0)
     end
   until event[1] == filter or not filter
