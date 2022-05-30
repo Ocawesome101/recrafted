@@ -37,6 +37,10 @@ elseif #args == 1 then
   local value = settings.get(setting)
   textutils.coloredPrint(colors.cyan, setting, colors.white, " is ",
     col[type(value)], string.format("%q", value))
+  local def = settings.getDetails(setting)
+  if def then
+    print(def.description)
+  end
 else
   local setting, value = args[1], args[2]
   settings.set(setting, coerce(value))

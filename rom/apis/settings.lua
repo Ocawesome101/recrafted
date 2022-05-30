@@ -49,6 +49,7 @@ end
 function settings.getDetails(name)
   rc.expect(1, name, "string")
   local def = defs[name]
+  if not def then return end
   return {
     description = def.description,
     default = def.default,

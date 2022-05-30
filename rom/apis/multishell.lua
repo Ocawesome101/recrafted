@@ -27,7 +27,12 @@ local function redraw()
   end
 
   for i=1, #tabs, 1 do
-    tabs[i].id = i
+    local tab = tabs[i]
+    tab.id = i
+    while #tab.foreground > 0 and not thread.exists(
+        tab.foreground[#tab.foreground]) do
+      tab.foreground[#tab.foreground] = nil
+    end
   end
 
   while focused > 1 and not tabs[focused] do
@@ -44,7 +49,6 @@ local function redraw()
       if tab.id == focused then
         currentTerm.setTextColor(colors.yellow)
         currentTerm.setBackgroundColor(colors.black)
-        thread.switchForeground(tab.pid)
       else
         currentTerm.setTextColor(colors.black)
         currentTerm.setBackgroundColor(colors.gray)
@@ -55,6 +59,7 @@ local function redraw()
     for _, tab in ipairs(tabs) do
       if tab.id == focused then
         tab.term.setVisible(true)
+        api.switchForeground(tab.foreground[#tab.foreground])
       else
         tab.term.setVisible(false)
       end
@@ -99,6 +104,43 @@ end
 
 function api.getCurrent()
   return current
+end
+
+-- programs should use these, NOT the `thread` functions, for tab-specific
+-- foregrounding to behave correctly
+function api.getForeground()
+  if #tabs > 0 then
+    local cur = tabs[current]
+    return cur.foreground[#cur.foreground]
+  else
+    return thread.getForeground()
+  end
+end
+
+function api.pushForeground(pid)
+  expect(1, pid, "number")
+  if not thread.exists(pid) then return end
+  if #tabs > 0 then
+    local cur = tabs[current]
+    cur.foreground[#cur.foreground+1] = pid
+    if current == focused then thread.switchForeground(pid) end
+    return true
+  else
+    return thread.pushForeground(pid)
+  end
+end
+
+function api.switchForeground(pid)
+  expect(1, pid, "number")
+  if not thread.exists(pid) then return end
+  if #tabs > 0 then
+    local cur = tabs[current]
+    cur.foreground[#cur.foreground] = pid
+    if current == focused then thread.switchForeground(pid) end
+    return true
+  else
+    return thread.pushForeground(pid)
+  end
 end
 
 local key_events = {
@@ -178,6 +220,7 @@ function api.launch(env, path, ...)
     coroutine.yield = raw_yield
 
     redraw()
+
     while true do
       local result = table.pack(raw_yield(...))
 
@@ -202,10 +245,12 @@ function api.launch(env, path, ...)
     coroutine.yield = yield
     term.redirect(tab.term)
     current = tab.id
+
     local ok, err = sh.exec(path, table.unpack(args, 1, args.n))
     if not ok then
       rc.printError(err)
     end
+
     if not tab.interact then
       textutils.coloredPrint(colors.yellow, "Press any key to continue")
       os.pullEvent("char")
@@ -222,15 +267,12 @@ function api.launch(env, path, ...)
       w, h - (tabid > 2 and 1 or 0), false),
     pid = thread.add(exec, path),
     interact = false,
-    id = tabid,
+    foreground = {},
+    id = tabid
   }
-  tab.foreground = tab.pid
 
+  tab.foreground[1] = tab.pid
   tabs[tabid] = tab
-
-  if tabid == 1 then
-    thread.pushForeground(tab.pid)
-  end
 
   return tabid
 end

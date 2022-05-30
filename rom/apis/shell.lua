@@ -6,6 +6,7 @@ local rc = require("rc")
 local fs = require("fs")
 local thread = require("thread")
 local settings = require("settings")
+local multishell = require("multishell")
 
 function shell.init()
   local vars = thread.vars()
@@ -80,7 +81,7 @@ local function execProgram(fork, command, ...)
         table.unpack(args, 1, args.n)))
     end, command)
 
-    thread.pushForeground(id)
+    multishell.pushForeground(id)
 
     repeat rc.sleep(0.05) until not thread.exists(id)
 
