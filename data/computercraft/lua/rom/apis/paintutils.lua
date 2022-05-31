@@ -98,4 +98,59 @@ function p.drawLine(_startX, _startY, _endX, _endY, color)
   end
 end
 
+function p.drawBox(startX, startY, endX, endY, color)
+  expect(1, startX, "number")
+  expect(2, startY, "number")
+  expect(3, endX, "number")
+  expect(4, endY, "number")
+  expect(5, color, "number")
+
+  -- -
+  p.drawLine(startX, startY, endX, startY, color)
+  -- _
+  p.drawLine(startX, endY, endX, endY, color)
+  -- |
+  p.drawLine(startX, startY, startX, endY, color)
+  --    |
+  p.drawLine(endX, startY, endX, endY, color)
+end
+
+function p.drawFilledBox(startX, startY, endX, endY, color)
+  expect(1, startX, "number")
+  expect(2, startY, "number")
+  expect(3, endX, "number")
+  expect(4, endY, "number")
+  expect(5, color, "number")
+
+  if color then term.setBackgroundColor(color) end
+  local line = string.rep(" ", endX - startX + 1)
+  for y=startY, endY, 1 do
+    p.at(startX, y).write(line)
+  end
+end
+
+function p.drawImage(img, x, y, frame)
+  expect(1, img, "table")
+  expect(2, x, "number")
+  expect(3, y, "number")
+  expect(4, frame, "number", "nil")
+
+  frame = frame or 1
+  if not img[frame] then
+    return nil, "invalid frame index " .. frame
+  end
+
+  if img.palette then
+    for k, v in pairs(img.palette) do
+      term.setPaletteColor(k, table.unpack(v))
+    end
+  end
+
+  for i, line in ipairs(img[frame]) do
+    p.at(x+i-1, y).blit(table.unpack(line))
+  end
+
+  return true
+end
+
 return p
