@@ -13,6 +13,11 @@ Certain modules  not  written  by  Dan200 have been
 adapted from  CraftOS,   relicensed  under  the MIT
 license with permission from their authors.
 
+To  use  Recrafted,  simply place  the  `recrafted`
+folder   contained  within  this  repository   into
+`.minecraft/saves/YOUR_WORLD/datapacks/` and reload
+the world.
+
 
 Recrafted addresses several  major pain points many
 have with  CraftOS.  It  has  native multithreading
@@ -28,4 +33,3 @@ For  questions  about Recrafted,  or  generally  to
 discuss   it  in  greater  depth,  please  use  the
 #recrafted   channel   in  my  Discord   guild   at
 https://discord.gg/6kXmSAcPWC.
-
