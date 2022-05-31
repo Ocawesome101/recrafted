@@ -2,6 +2,7 @@
 
 local rc = require("rc")
 local term = require("term")
+local json = require("json")
 local colors = require("colors")
 
 local tu = {}
@@ -245,12 +246,17 @@ end
 tu.serialise = tu.serialize
 tu.unserialise = tu.unserialize
 
-function tu.serializeJSON()--t, nbt)
-  error("not yet implemented")
+function tu.serializeJSON(t, nbt)
+  rc.expect(1, t, "table")
+  if nbt then
+    error("NBT mode is not yet supported")
+  end
+  return json.encode(t)
 end
 
-function tu.unserializeJSON()--s, options)
-  error("not yet implemented")
+function tu.unserializeJSON(s)--s, options)
+  rc.expect(1, s, "string")
+  return json.decode(s)
 end
 
 function tu.urlEncode(str)
