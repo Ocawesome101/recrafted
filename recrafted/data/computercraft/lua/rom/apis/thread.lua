@@ -128,6 +128,8 @@ function threadapi.start()
   end
   isRunning = true
 
+  local log = io.open("/recrafted.log", "w")
+
   while next(threads) do
     local event = table.pack(yield())
     for _id, thread in pairs(threads) do
@@ -138,6 +140,9 @@ function threadapi.start()
       if not result[1] then
         rc.printError(string.format("thread %d (%s): %s", _id, thread.name,
           result[2]))
+        log:write(string.format("thread %d (%s): %s\n", _id, thread.name,
+          result[2])):flush()
+        threads[_id] = nil
         threads[_id] = nil
 
       elseif coroutine.status(thread.coro) == "dead" then
