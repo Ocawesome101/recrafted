@@ -1,6 +1,6 @@
 @font-face {
   font-family: "computercraft";
-  src: url("computercraft.ttf") format("ttf") url("computercraft.woff") format("woff");
+  src: url("computercraft.woff") format("woff"), url("computercraft.ttf") format("ttf");
 }
 
 body {
