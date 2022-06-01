@@ -30,3 +30,5 @@ a {
 .green { color: #57a64e; }
 .red { color: #cc4c4c; }
 .black { color: #111111; }
+
+.blink { animation: 1s blink; }
