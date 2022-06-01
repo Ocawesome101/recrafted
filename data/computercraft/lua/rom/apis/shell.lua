@@ -172,6 +172,7 @@ function shell.resolveProgram(path)
   end
 
   for search in thread.vars().path:gmatch("[^:]+") do
+    if search == "." then search = shell.dir() end
     local try = fs.combine(search, path .. ".lua")
     if fs.exists(try) and not fs.isDir(try) then
       return try

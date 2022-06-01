@@ -1,0 +1,97 @@
+                 NEW IN RECRAFTED
+
+The  following  is a  non-exhaustive  list  of  new
+and/or  changed features  in Recrafted compared  to
+CraftOS.
+
+Major Changes
+=============
+
+  - `os.loadAPI` has been completely omitted.
+  - * All APIs except the standard Lua ones must be
+    loaded using `require` before they can be used.
+  - * Lua 5.1 builtins have been removed from `_G`,
+    but can be accessed through `require("lua51")`.
+  - Startup   scripts  from  /startup  are  run  in
+    parallel as separate threads.
+  - Recrafted   has   full   native   support   for
+    multithreading  --  custom  schedulers  are  no
+    longer necessary!
+  - Multishell  can be used even on standard  (non-
+    advanced)   computers,   using   Alt+Left   and
+    Alt+Right  to   switch   tabs.    There  is  no
+    dedicated Multishell program - only the API.  A
+    Multishell instance may be started  at any time
+    using multishell.launch.
+
+* These  do  not apply when compatibility  mode  is
+  enabled - see "Compatibility Mode" below.
+
+
+New API Methods
+===============
+
+Recrafted features a few extensions to the  CraftOS
+APIs:
+
+  - textutils.coloredWrite(...):
+    Similar  to  textutils.tabulate(),   but  takes
+    strings instead of tables  and doesn't tabulate
+    its arguments.  Useful  for  easy  printing  of
+    colorized  text.  Returns  the  number of lines
+    written.
+
+  - textutils.coloredPrint(...):
+    Like  textutils.coloredWrite(),  but prints  an
+    extra  newline at the end of the text,  similar
+    to print().
+
+  - Tables   given   to  textutils.tabulate()   may
+    contain tables, along with strings and numbers;
+    if a table is present, it must contain a set of
+    arguments     suitable    for    passing     to
+    textutils.coloredWrite().
+
+  - Recrafted's paintutils API  uses the BIMG (Blit
+    Image)  format  for  its  images.  This  format
+    supports  animations and lots of  other  useful
+    metadata,   plus  combining  text  and  images.
+    See    https://github.com/SkyTheCodeMaster/bimg
+    for details on the format.
+
+
+The   Multishell   foreground   thread   management
+functions  should  only  be  used  when  absolutely
+necessary.  If they ARE necessary,  these should be
+used   instead  of  the  corresponding  thread  API
+functions  regardless  of  whether   multishell  is
+actually enabled, to ensure proper behavior when it
+is enabled.
+
+The foreground thread is  the only thread that will
+respond  to terminate events.  Ensuring that it  is
+set correctly is therefore quite important.   Under
+most circumstances you should not need to use these
+functions,  since shell.run() uses them behind  the
+scenes.
+
+These  should  not  be confused  with  Multishell's
+getFocus() and setFocus()  functions,  which manage
+the focused tab.
+
+  - multishell.getForeground():
+    Returns the foreground thread ID of the current
+    tab.
+
+  - multishell.pushForeground(pid):
+    Adds  a thread to the current tab's  foreground
+    stack;  the  given thread will be removed  when
+    it exits.
+
+  - multishell.switchForeground(pid):
+    Changes  the  top entry  of the  current  tab's
+    foreground stack;  removes the old entry.
+
+  - multishell.launch()'s   first   argument,   the
+    environment,  is optional and may be completely
+    omitted.

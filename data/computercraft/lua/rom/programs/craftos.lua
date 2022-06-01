@@ -8,7 +8,8 @@ end
 
 local libs = {
   "peripheral", "fs", "settings", "http", "term", "colors", "multishell",
-  "keys", "parallel", "settings", "shell", "textutils", "window", "write"
+  "keys", "parallel", "settings", "shell", "textutils", "window", "write",
+  "paintutils"
 }
 
 for i=1, #libs, 1 do
