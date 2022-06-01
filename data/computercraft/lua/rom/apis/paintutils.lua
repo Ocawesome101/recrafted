@@ -21,18 +21,12 @@ function p.loadImage(path)
   end
 end
 
--- utility
-function p.at(x, y)
-  term.setCursorPos(x, y)
-  return term
-end
-
 function p.drawPixel(x, y, color)
   expect(1, x, "number")
   expect(2, y, "number")
   expect(2, color, "number", "nil")
   if color then term.setBackgroundColor(color) end
-  p.at(x, y).write(" ")
+  term.at(x, y).write(" ")
 end
 
 local function drawSteep(x0, y0, x1, y1, color)
@@ -84,11 +78,11 @@ function p.drawLine(_startX, _startY, _endX, _endY, color)
   elseif startX == endX then
     if color then term.setBackgroundColor(color) end
     for y=startY, endY, 1 do
-      p.at(startX, y).write(" ")
+      term.at(startX, y).write(" ")
     end
   elseif startY == endY then
     if color then term.setBackgroundColor(color) end
-    p.at(startX, startY).write((" "):rep(endX - startX))
+    term.at(startX, startY).write((" "):rep(endX - startX))
   end
 
   if (endY - startY) < (endX - startX) then
@@ -125,7 +119,7 @@ function p.drawFilledBox(startX, startY, endX, endY, color)
   if color then term.setBackgroundColor(color) end
   local line = string.rep(" ", endX - startX + 1)
   for y=startY, endY, 1 do
-    p.at(startX, y).write(line)
+    term.at(startX, y).write(line)
   end
 end
 
@@ -153,7 +147,7 @@ function p.drawImage(img, x, y, frame)
   end
 
   for i, line in ipairs(img[frame]) do
-    p.at(x+i-1, y).blit(table.unpack(line))
+    term.at(x+i-1, y).blit(table.unpack(line))
   end
 
   return true

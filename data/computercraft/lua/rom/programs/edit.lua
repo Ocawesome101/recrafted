@@ -41,23 +41,21 @@ if args[1] then
 end
 
 local function redraw()
-  local _, h = term.getSize()
+  local w, h = term.getSize()
 
   for i=1, h - 1, 1 do
     local to_write = state.lines[state.scroll + i] or ""
-    term.setCursorPos(1, i)
-    term.clearLine()
+    if state.cx > w then
+      to_write = to_write:sub(state.cx - (w-1))
+    end
+    term.at(1, i).clearLine()
     term.write(to_write)
   end
 
-  term.setCursorPos(1, h)
+  term.at(1, h).clearLine()
+  textutils.coloredWrite(colors.yellow, state.status, colors.white)
 
-  term.clearLine()
-  term.setTextColor(colors.yellow)
-  term.write(state.status)
-  term.setTextColor(colors.white)
-
-  term.setCursorPos(state.cx, state.cy - state.scroll)
+  term.setCursorPos(math.min(w, state.cx), state.cy - state.scroll)
 end
 
 local run, menu = true, false
@@ -92,8 +90,7 @@ local function processMenuInput()
         state.status = "Lose unsaved work? E:yes C:no"
         menu = 2
       else
-        term.clear()
-        term.setCursorPos(1,1)
+        term.at(1, 1).clear()
         run = false
       end
 

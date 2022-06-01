@@ -34,7 +34,15 @@ local valid = {
   setPaletteColor = true,
   setPaletteColour = true,
   getPaletteColor = true,
-  getPaletteColour = true
+  getPaletteColour = true,
+
+  -- CraftOS-PC graphics mode settings
+  setGraphicsMode = not not native.setGraphicsMode,
+  getGraphicsMode = not not native.getGraphicsMode,
+  drawPixels = not not native.drawPixels,
+  getPixels = not not native.getPixels,
+  setPixel = not not native.setPixel,
+  getPixel = not not native.getPixel
 }
 
 for k in pairs(valid) do
@@ -59,6 +67,11 @@ end
 function term.redirect(obj)
   rc.expect(1, obj, "table")
   return thread.setTerm(obj)
+end
+
+function term.at(x, y)
+  term.setCursorPos(x, y)
+  return term
 end
 
 local keys = require("keys")

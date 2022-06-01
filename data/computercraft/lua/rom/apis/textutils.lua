@@ -51,8 +51,7 @@ local function pagedWrite(text)
       term.setTextColor(old)
       os.pullEvent("key")
       local _, y = term.getCursorPos()
-      term.setCursorPos(1, y)
-      term.clearLine()
+      term.at(1, y).clearLine()
       total = 0
     end
   end

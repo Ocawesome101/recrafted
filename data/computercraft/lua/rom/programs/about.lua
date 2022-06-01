@@ -2,10 +2,7 @@
 
 local term = require("term")
 local colors = require("colors")
+local textutils = require("textutils")
 
-local old = term.getTextColor()
-term.setTextColor(colors.yellow)
-
-print(os.version() .. " on " .. _HOST)
-
-term.setTextColor(old)
+textutils.coloredPrint(colors.yellow, os.version() .. " on " .. _HOST,
+  term.getTextColor())

@@ -20,7 +20,8 @@ function os.pullEvent(filter)
   local event
   repeat
     event = table.pack(coroutine.yield())
-    if event[1] == "terminate" and thread.id() == thread.getForeground() then
+    if event[1] == "terminate" and (thread.id() == thread.getForeground()
+        or thread.id() == 0) then
       error("terminated", 0)
     end
   until event[1] == filter or not filter

@@ -4,15 +4,10 @@ local term = require("term")
 local shell = require("shell")
 local write = require("write")
 local colors = require("colors")
+local textutils = require("textutils")
 local printError = require("printError")
 
-term.setCursorPos(1,1)
-term.clear()
-
-term.setTextColor(colors.yellow)
-print(os.version())
-
-term.setTextColor(colors.white)
+textutils.coloredPrint(colors.yellow, os.version(), colors.white)
 
 shell.init()
 

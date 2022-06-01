@@ -192,61 +192,60 @@ end
 local thread = require("thread")
 local settings = require("settings")
 
-thread.add(function()
-  if settings.get("bios.compat_mode") then
-    thread.add(function()
-      local sh = require("shell")
-      sh.init()
-      local ok, err = sh.run("/rom/programs/craftos.lua",
-        "/rom/programs/shell.lua")
-      if not ok then
-        rc.printError(err)
-        rc.sleep(1)
-      end
-    end)
-  else
-    -- disallow globals
-    setmetatable(_G, {__newindex = function(_, k)
-      error("attempt to create global variable " .. k)
-    end, __metatable = {}})
-
-    if settings.get("bios.use_multishell") then
-      require("multishell").launch(nil, "/rom/programs/shell.lua")
-    else
-      thread.add(function()
-        dofile("/rom/programs/shell.lua")
-      end, "shell")
-    end
-  end
-
-  require("shell").init()
-  if rc.fs.exists("/startup.lua") then
-    print("Executing startup.lua")
-
-    local ok, err = pcall(dofile, "/startup.lua")
+if settings.get("bios.compat_mode") then
+  thread.add(function()
+    local sh = require("shell")
+    sh.init()
+    rc.term.at(1,1).clear()
+    local ok, err = sh.run("/rom/programs/craftos.lua",
+      "/rom/programs/shell.lua")
     if not ok then
       rc.printError(err)
       rc.sleep(1)
     end
+  end)
+else
+  -- disallow globals
+  setmetatable(_G, {__newindex = function(_, k)
+    error("attempt to create global variable " .. k)
+  end, __metatable = {}})
+
+  if settings.get("bios.use_multishell") then
+    require("multishell").launch(nil, "/rom/programs/shell.lua")
+  else
+    thread.add(function()
+      rc.term.at(1,1).clear()
+      dofile("/rom/programs/shell.lua")
+    end, "shell")
   end
+end
 
-  if rc.fs.exists("/startup") then
-    if not rc.fs.isDir("/startup") then
-      rc.printError("/startup is not a directory")
-      rc.sleep(1)
-    else
-      print("Loading startup scripts.")
+if rc.fs.exists("/startup.lua") then
+  print("Executing startup.lua")
 
-      local startup = rc.fs.list("/startup")
-      table.sort(startup)
-      for i=1, #startup, 1 do
-        thread.add(function()
-          dofile("/startup/"..startup[i])
-        end)
-      end
+  local ok, err = pcall(dofile, "/startup.lua")
+  if not ok then
+    rc.printError(err)
+    rc.sleep(1)
+  end
+end
+
+if rc.fs.exists("/startup") then
+  if not rc.fs.isDir("/startup") then
+    rc.printError("/startup is not a directory")
+    rc.sleep(1)
+  else
+    print("Loading startup scripts.")
+
+    local startup = rc.fs.list("/startup")
+    table.sort(startup)
+    for i=1, #startup, 1 do
+      thread.add(function()
+        dofile("/startup/"..startup[i])
+      end, "startup/"..startup[i])
     end
   end
-end, "startup-runner")
+end
 
 print("Starting coroutine manager.")
 
