@@ -15,6 +15,7 @@ end
 -- remove CC-specific globals
 rc.peripheral = rm("peripheral")
 rc.redstone = rm("redstone")
+rc.commands = rm("commands")
 rc.turtle = rm("turtle")
 rc.http = rm("http")
 rc.term = rm("term")
