@@ -95,3 +95,19 @@ the focused tab.
   - multishell.launch()'s   first   argument,   the
     environment,  is optional and may be completely
     omitted.
+
+
+Compatibility Mode
+==================
+
+When the bios.compat_mode setting is set, Recrafted
+will   enter   CraftOS  compatibility  mode.   This
+disables   strict  global checking and  places  all
+relevant   functions   and   APIs   into   _G.   In
+compatibility     mode,    os.version()     returns
+"CraftOS 1.8"  rather  than the  current  Recrafted
+version.
+
+This mode should only be used when necessary.   New
+programs  should use proper Lua coding  conventions
+and therefore work without it.
