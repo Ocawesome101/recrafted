@@ -88,6 +88,7 @@ function term.read(replace, history, complete, default)
   history = history or {}
 
   local buffer = default or ""
+  local prev_buf = buffer
   history[#history+1] = buffer
 
   local hist_pos = #history
@@ -102,13 +103,11 @@ function term.read(replace, history, complete, default)
 
   local function full_redraw(force)
     if force or dirty then
-      if complete then
-        local changed
-        completions, changed = complete(buffer)
-        if changed == nil or changed then
-          comp_id = math.min(1, #completions)
-        end
+      if complete and buffer ~= prev_buf then
+        completions = complete(buffer)
+        comp_id = math.min(1, #completions)
       end
+      prev_buf = buffer
 
       term.setCursorPos(stx, sty)
       local text = buffer
@@ -166,6 +165,9 @@ function term.read(replace, history, complete, default)
         dirty = true
         if cursor_pos == 0 then
           buffer = buffer:sub(1, -2)
+          if comp_id > 0 then
+            rc.write((" "):rep(#completions[comp_id]))
+          end
         elseif cursor_pos < #buffer then
           buffer = buffer:sub(0, -cursor_pos - 2)..buffer:sub(-cursor_pos)
         end
@@ -220,6 +222,10 @@ function term.read(replace, history, complete, default)
       elseif id == "right" then
         if cursor_pos > 0 then
           cursor_pos = cursor_pos - 1
+
+        elseif comp_id > 0 then
+          dirty = true
+          buffer = buffer .. completions[comp_id]
         end
 
       elseif id == "home" then
@@ -229,6 +235,9 @@ function term.read(replace, history, complete, default)
         cursor_pos = 0
 
       elseif id == "enter" then
+        if comp_id > 0 then
+          rc.write((" "):rep(#completions[comp_id]))
+        end
         rc.write("\n")
         break
       end

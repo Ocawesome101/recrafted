@@ -222,16 +222,6 @@ else
   end
 end
 
-if rc.fs.exists("/startup.lua") then
-  print("Executing startup.lua")
-
-  local ok, err = pcall(dofile, "/startup.lua")
-  if not ok then
-    rc.printError(err)
-    rc.sleep(1)
-  end
-end
-
 if rc.fs.exists("/startup") then
   if not rc.fs.isDir("/startup") then
     rc.printError("/startup is not a directory")

@@ -1,5 +1,6 @@
 -- rc.shell
 
+local fs = require("fs")
 local term = require("term")
 local shell = require("shell")
 local write = require("write")
@@ -27,6 +28,13 @@ local aliases = {
 
 for k, v in pairs(aliases) do
   shell.setAlias(k, v)
+end
+
+if fs.exists("/startup.lua") then
+  local ok, err = pcall(dofile, "/startup.lua")
+  if not ok and err then
+    printError(err)
+  end
 end
 
 while true do
