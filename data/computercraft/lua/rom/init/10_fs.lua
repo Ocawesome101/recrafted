@@ -27,9 +27,17 @@ function fs.complete(path, location, include_files, include_dirs)
   local completions = {}
 
   for i=1, #files, 1 do
-    local full = fs.combine(location, files[i])
+    --local full = fs.combine(location, files[i])
     if files[i]:sub(1, #name) == name then
-      completion[#completion+1] = files[i]:sub(#name+1)
+      completions[#completions+1] = files[i]:sub(#name+1)
     end
   end
+
+  return completions
+end
+
+function fs.isDriveRoot(path)
+  expect(1, path, "string")
+  if #path == 0 then path = "/" end
+  return path == "/" or fs.getDrive(path) == fs.getDrive(fs.getDir(path))
 end

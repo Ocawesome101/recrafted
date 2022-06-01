@@ -16,6 +16,7 @@ end
 rc.peripheral = rm("peripheral")
 rc.redstone = rm("redstone")
 rc.commands = rm("commands")
+rc.pocket = rm("pocket")
 rc.turtle = rm("turtle")
 rc.http = rm("http")
 rc.term = rm("term")
