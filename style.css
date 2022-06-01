@@ -31,4 +31,12 @@ a {
 .red { color: #cc4c4c; }
 .black { color: #111111; }
 
-.blink { animation: 1s blink; }
+.blink { animation: blink 1s infinite; }
+
+@keyframes blink {
+  0% { color: #f0f0f0 }
+  49% { color: #f0f0f0 }
+  50% { color: #111111 }
+  99% { color: #111111 }
+  100% { color: #f0f0f0 }
+}

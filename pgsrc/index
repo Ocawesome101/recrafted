@@ -1,7 +1,153 @@
 %{@Back{https://ocawesome101.github.io/}}
-%{
+%{*yellow{Recrafted 1.0
+/>} about
 
-Recrafted is
+Recrafted is ComputerCraft's CraftOS but with saner
+API design.  It's also not licensed under the CCPL,
+but rather the MIT license -- so you can freely use
+Recrafted's  code in  other projects  without being
+legally  bound  to  license  them  under  the CCPL.
 
-Check out the source code @here{https://github.com/ocawesome101/recrafted}!
+All  APIs  are  implemented  as  described  on  the
+CC: Tweaked wiki at @https://tweaked.cc{https://tweaked.cc}, with slight
+modifications   to  fit  Recrafted's   API  design.
+Certain modules  not  written  by  Dan200 have been
+adapted from  CraftOS,   relicensed  under  the MIT
+license with permission from their authors.
+
+
+Recrafted addresses several  major pain points many
+have with  CraftOS.  It  has  native multithreading
+support (not just parallel,  but a full scheduler);
+changes  to  package.path   are  fully  persistent;
+os.loadAPI has been  altogether discarded;  none of
+the APIs provided by  the  system are inserted into
+_G at  boot--instead  they  must  be  loaded  using
+require(), as per Lua convention.   And, of course,
+the CCPL is no longer present.
+
+For  questions  about Recrafted,  or  generally  to
+discuss   it  in  greater  depth,  please  use  the
+#recrafted channel in @my Discord guild{https://discord.gg/6kXmSAcPWC}.
+
+*yellow{/>} help whatsnew
+
+                 *yellow{NEW IN RECRAFTED}
+
+The  following  is a  non-exhaustive  list  of  new
+and/or  changed features  in Recrafted compared  to
+CraftOS.
+
+*yellow{Major Changes
+=============}
+
+  *red{-} *lightGray{os.loadAPI} has been completely omitted.
+  *red{-} *lightGray{*} All APIs except the standard Lua ones must be
+    loaded using  *lightGray{require}  before they can be used.
+  *red{-} *lightGray{*} Lua 5.1  builtins have been removed from  *lightGray{_G},
+    but can be accessed through *lightGray{require(*red{"lua51"})}.
+  *red{-} Startup   scripts  from  *yellow{/startup}  are  run  in
+    parallel as separate threads.
+  *red{-} Recrafted   has   full   native   support   for
+    multithreading  --  custom  schedulers  are  no
+    longer necessary!
+  *red{-} Multishell  can be used even on standard  (non-
+    advanced)   computers,   using   Alt+Left   and
+    Alt+Right  to   switch   tabs.    There  is  no
+    dedicated Multishell program - only the API.  A
+    Multishell instance may be started  at any time
+    using *lightGray{multishell.launch}.
+
+* These  do  not apply when compatibility  mode  is
+  enabled - see "Compatibility Mode" below.
+
+
+*yellow{New API Methods
+===============}
+
+Recrafted features a few extensions to the  CraftOS
+APIs:
+
+  *red{-} *lightGray{textutils.coloredWrite}(...):
+    Similar  to  *lightGray{textutils.tabulate}(),   but  takes
+    strings instead of tables  and doesn't tabulate
+    its arguments.  Useful  for  easy  printing  of
+    colorized  text.  Returns  the  number of lines
+    written.
+
+  *red{-} *lightGray{textutils.coloredPrint}(...):
+    Like  *lightGray{textutils.coloredWrite}(),  but prints  an
+    extra  newline at the end of the text,  similar
+    to *lightGray{print}().
+
+  *red{-} Tables   given   to  *lightGray{textutils.tabulate}()   may
+    contain tables, along with strings and numbers;
+    if a table is present, it must contain a set of
+    arguments     suitable    for    passing     to
+    *lightGray{textutils.coloredWrite}().
+
+  *red{-} Recrafted's *lightGray{paintutils} API  uses the BIMG (Blit
+    Image)  format  for  its  images.  This  format
+    supports  animations and lots of  other  useful
+    metadata,   plus  combining  text  and  images.
+    See    @https://github.com/SkyTheCodeMaster/bimg{https://github.com/SkyTheCodeMaster/bimg}
+    for details on the format.
+
+
+The   Multishell   foreground   thread   management
+functions  should  only  be  used  when  absolutely
+necessary.  If they ARE necessary,  these should be
+used   instead  of  the  corresponding  thread  API
+functions  regardless  of  whether   multishell  is
+actually enabled, to ensure proper behavior when it
+is enabled.
+
+The foreground thread is  the only thread that will
+respond  to terminate events.  Ensuring that it  is
+set correctly is therefore quite important.   Under
+most circumstances you should not need to use these
+functions,  since *lightGray{shell.run}() uses them behind  the
+scenes.
+
+These  should  not  be confused  with  Multishell's
+getFocus() and setFocus()  functions,  which manage
+the focused tab.
+
+  *red{-} *lightGray{multishell.getForeground}():
+    Returns the foreground thread ID of the current
+    tab.
+
+  *red{-} *lightGray{multishell.pushForeground}(*magenta{pid}):
+    Adds  a thread to the current tab's  foreground
+    stack;  the  given thread will be removed  when
+    it exits.
+
+  *red{-} *lightGray{multishell.switchForeground}(*magenta{pid}):
+    Changes  the  top entry  of the  current  tab's
+    foreground stack;  removes the old entry.
+
+  *red{-} *lightGray{multishell.launch}()'s   first   argument,   the
+    environment,  is optional and may be completely
+    omitted.
+
+
+*yellow{/>} help compatibility
+
+*yellow{Compatibility Mode
+==================}
+
+When the bios.compat_mode setting is set, Recrafted
+will   enter   CraftOS  compatibility  mode.   This
+disables   strict  global checking and  places  all
+relevant   functions   and   APIs   into   _G.   In
+compatibility     mode,    os.version()     returns
+"CraftOS 1.8"  rather  than the  current  Recrafted
+version.
+
+This mode should only be used when necessary.   New
+programs  should use proper Lua coding  conventions
+and therefore work without it.
+
+*yellow{/>} *blink{_}
+
 }
