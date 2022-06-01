@@ -21,8 +21,8 @@ support (not just parallel,  but a full scheduler);
 changes  to  package.path   are  fully  persistent;
 os.loadAPI has been  altogether discarded;  none of
 the APIs provided by  the  system are inserted into
-_G at  boot--instead  they  must  be  loaded  using
-require(), as per Lua convention.   And, of course,
+*lightGray{_G} at  boot--instead  they  must  be  loaded  using
+*lightGray{require}(), as per Lua convention.   And, of course,
 the CCPL is no longer present.
 
 For  questions  about Recrafted,  or  generally  to
@@ -109,7 +109,7 @@ functions,  since *lightGray{shell.run}() uses them behind  the
 scenes.
 
 These  should  not  be confused  with  Multishell's
-getFocus() and setFocus()  functions,  which manage
+*lightGray{getFocus}() and *lightGray{setFocus}()  functions,  which manage
 the focused tab.
 
   *red{-} *lightGray{multishell.getForeground}():
