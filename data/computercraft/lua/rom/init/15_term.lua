@@ -5,6 +5,7 @@ local rc = ...
 
 -- we need a couple of these
 local thread = require("thread")
+local colors = require("colors")
 local native = rc.term
 
 local term = {}
@@ -101,12 +102,30 @@ function term.read(replace, history, complete, default)
 
   local function full_redraw(force)
     if force or dirty then
+      if complete then
+        local changed
+        completions, changed = complete(buffer)
+        if changed == nil or changed then
+          comp_id = math.min(1, #completions)
+        end
+      end
+
       term.setCursorPos(stx, sty)
       local text = buffer
       if replace then text = replace:rep(#text) end
-      local ln = rc.write(text .. " ")
+      local ln = rc.write(text)
 
-      completions = {}
+      if completions[comp_id] then
+        local oldfg = term.getTextColor()
+        local oldbg = term.getBackgroundColor()
+        term.setTextColor(colors.white)
+        term.setBackgroundColor(colors.gray)
+        ln = ln + rc.write(completions[comp_id])
+        term.setTextColor(oldfg)
+        term.setBackgroundColor(oldbg)
+      else
+        ln = ln + rc.write(" ")
+      end
 
       if sty + ln > h then
         sty = sty - (sty + ln - h)
@@ -115,7 +134,7 @@ function term.read(replace, history, complete, default)
 
     -- set cursor to the appropriate spot
     local cx, cy = stx, sty
-    cx = cx + #buffer - cursor_pos + #(completions[comp_id] or "")
+    cx = cx + #buffer - cursor_pos-- + #(completions[comp_id] or "")
     while cx > w do
       cx = cx - w
       cy = cy + 1
@@ -125,7 +144,6 @@ function term.read(replace, history, complete, default)
 
   term.setCursorBlink(true)
 
-  -- TODO: text completion support
   while true do
     full_redraw()
     -- get input
@@ -153,7 +171,14 @@ function term.read(replace, history, complete, default)
         end
 
       elseif id == "up" then
-        if hist_pos > 1 then
+        if #completions > 0 then
+          if comp_id > 1 then
+            dirty = true
+            rc.write((" "):rep(#completions[comp_id]))
+            comp_id = comp_id - 1
+          end
+
+        elseif hist_pos > 1 then
           cursor_pos = 0
 
           history[hist_pos] = buffer
@@ -167,7 +192,14 @@ function term.read(replace, history, complete, default)
         end
 
       elseif id == "down" then
-        if hist_pos < #history then
+        if #completions > 0 then
+          if comp_id < #completions then
+            dirty = true
+            rc.write((" "):rep(#completions[comp_id]))
+            comp_id = comp_id + 1
+          end
+
+        elseif hist_pos < #history then
           cursor_pos = 0
 
           history[hist_pos] = buffer
