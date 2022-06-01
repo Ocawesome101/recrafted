@@ -58,7 +58,7 @@ CraftOS.
     Multishell instance may be started  at any time
     using *lightGray{multishell.launch}.
 
-* These  do  not apply when compatibility  mode  is
+*lightGray{*} These  do  not apply when compatibility  mode  is
   enabled - see "Compatibility Mode" below.
 
 
@@ -136,12 +136,12 @@ the focused tab.
 *yellow{Compatibility Mode
 ==================}
 
-When the bios.compat_mode setting is set, Recrafted
+When the *cyan{bios.compat_mode} setting is set, Recrafted
 will   enter   CraftOS  compatibility  mode.   This
 disables   strict  global checking and  places  all
-relevant   functions   and   APIs   into   _G.   In
-compatibility     mode,    os.version()     returns
-"CraftOS 1.8"  rather  than the  current  Recrafted
+relevant   functions   and   APIs   into   *lightGray{_G}.   In
+compatibility     mode,    *lightGray{os.version}()     returns
+*red{"CraftOS 1.8"}  rather  than the  current  Recrafted
 version.
 
 This mode should only be used when necessary.   New
