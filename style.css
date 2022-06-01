@@ -1,0 +1,32 @@
+@font-face {
+  font-family: "computercraft";
+  src: url("computercraft.ttf") format("ttf") url("computercraft.woff") format("woff");
+}
+
+body {
+  font-family: "computercraft",monospace;
+  background-color: #111;
+  color: #f0f0f0;
+}
+
+a {
+  color: #3366cc;
+  text-decoration: none;
+}
+
+.white { color: #f0f0f0; }
+.orange { color: #f2b233; }
+.magenta { color: #e57fd8; }
+.lightBlue { color: #99b2f2; }
+.yellow { color: #dede6c; }
+.lime { color: #7fcc19; }
+.pink { color: #f2b2cc; }
+.gray { color: #4c4c4c; }
+.lightGray { color: #999999; }
+.cyan { color: #4c99b2; }
+.purple { color: #b266e5; }
+.blue { color: #3366cc; }
+.brown { color: #7f664c; }
+.green { color: #57a64e; }
+.red { color: #cc4c4c; }
+.black { color: #111111; }
