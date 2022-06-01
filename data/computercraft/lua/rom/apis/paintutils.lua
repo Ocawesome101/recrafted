@@ -146,6 +146,12 @@ function p.drawImage(img, x, y, frame)
     end
   end
 
+  if img[frame].palette then
+    for k, v in pairs(img[frame].palette) do
+      term.setPaletteColor(k, table.unpack(v))
+    end
+  end
+
   for i, line in ipairs(img[frame]) do
     p.at(x+i-1, y).blit(table.unpack(line))
   end
