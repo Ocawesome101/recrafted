@@ -32,11 +32,12 @@
 --    remove the listener from that port
 
 local rc = ...
-local old = rc.http
 
-if not old then
+if not rc.platform.http then
   return
 end
+
+local old = rc.http
 
 local http = {}
 

@@ -3,7 +3,7 @@
 local rc = ...
 local expect = rc.expect
 
-if not rc.commands then return end
+if not rc.platform.command then return end
 
 local native = rc.commands
 local c = {}

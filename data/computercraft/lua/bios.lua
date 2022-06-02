@@ -5,6 +5,14 @@
 local rc = {}
 
 rc._ROM_DIR = "/rom"
+rc.platform = {
+  os = "Recrafted",
+  version = "1.0",
+  advanced = term.isColor(),
+  command = not not commands,
+  turtle = not not turtle,
+  pocket = not not pocket,
+}
 
 local function rm(api)
   local tab = _G[api]
