@@ -30,6 +30,11 @@ for k, v in pairs(aliases) do
   shell.setAlias(k, v)
 end
 
+local completions = fs.combine(require("rc")._ROM_DIR, "completions")
+for _, prog in ipairs(fs.list(completions)) do
+  dofile(fs.combine(completions, prog))
+end
+
 if fs.exists("/startup.lua") then
   local ok, err = pcall(dofile, "/startup.lua")
   if not ok and err then

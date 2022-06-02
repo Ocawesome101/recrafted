@@ -36,6 +36,8 @@ end
 function c.program(text)
   expect(1, text, "string")
   local progs = shell.programs()
+  table.sort(progs, function(a,b) return #a < #b end)
+
   return completion.choice(text, progs)
 end
 
@@ -60,7 +62,7 @@ function c.build(...)
   return function(index, current, previous)
     local complete
     if args.n < index then
-      if args[args.n] and args[args.n].many then
+      if type(args[args.n]) == "table" and args[args.n].many then
         complete = args[args.n]
       end
 

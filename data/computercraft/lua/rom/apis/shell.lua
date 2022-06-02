@@ -4,8 +4,10 @@ local shell = {}
 
 local rc = require("rc")
 local fs = require("fs")
+local colors = require("colors")
 local thread = require("thread")
 local settings = require("settings")
+local textutils = require("textutils")
 local multishell = require("multishell")
 
 local function copyIfPresent(f, t)
@@ -43,6 +45,32 @@ local builtins = {
 
   exit = function()
     shell.exit()
+  end,
+
+  alias = function(...)
+    local args = {...}
+
+    if #args == 0 then
+      textutils.coloredPrint(colors.yellow, "shell aliases", colors.white)
+
+      local aliases = shell.aliases()
+
+      local _aliases = {}
+      for k, v in pairs(aliases) do
+        table.insert(_aliases, {colors.cyan, k, colors.white, ":", v})
+      end
+
+      textutils.pagedTabulate(_aliases)
+
+    elseif #args == 1 then
+      shell.clearAlias(args[1])
+
+    elseif #args == 2 then
+      shell.setAlias(args[1], args[2])
+
+    else
+      error("this program takes a maximum of two arguments", 0)
+    end
   end
 }
 
@@ -192,11 +220,19 @@ function shell.programs(hidden)
 
   local programs = {}
 
+  local seen = {}
   for search in thread.vars().path:gmatch("[^:]+") do
     local files = fs.list(search)
     for i=1, #files, 1 do
       programs[#programs+1] = files[i]:match("^(.+)%.lua$")
+      if programs[#programs] then
+        seen[programs[#programs]] = true
+      end
     end
+  end
+
+  for alias in pairs(shell.aliases()) do
+    if not seen[alias] then programs[#programs+1] = alias end
   end
 
   return programs
@@ -206,10 +242,16 @@ function shell.complete(line)
   rc.expect(1, line, "string")
 
   local words = tokenize(line)
+  local aliases = thread.vars().aliases or {}
+
+  if #words > (line:sub(-1) == " " and 0 or 1) then
+    words[1] = aliases[words[1]] or words[1]
+  end
 
   if line:sub(-1) == " " and #words > 0 then
     local complete = thread.vars().completions[words[1]]
     if complete then
+      table.remove(words, 1)
       return complete(#words, "", words)
     end
   else
@@ -220,6 +262,7 @@ function shell.complete(line)
       local complete = thread.vars().completions[words[1]]
       if complete then
         local arg = table.remove(words, #words)
+        table.remove(words, 1)
         return complete(#words + 1, arg, words)
       end
     end
@@ -234,11 +277,11 @@ end
 function shell.setCompletionFunction(program, complete)
   rc.expect(1, program, "string")
   rc.expect(2, complete, "function")
-  thread.vars().completion[program] = complete
+  thread.vars().completions[program] = complete
 end
 
 function shell.getCompletionInfo()
-  return thread.vars().completion
+  return thread.vars().completions
 end
 
 function shell.getRunningProgram()
@@ -267,7 +310,7 @@ function shell.openTab(...)
 end
 
 function shell.switchTab(id)
-  return require("multishell").switchTab(id)
+  return require("multishell").setFocus(id)
 end
 
 return shell

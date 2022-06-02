@@ -78,6 +78,7 @@ end
 local keys = require("keys")
 
 -- read
+local empty = {}
 function term.read(replace, history, complete, default)
   rc.expect(1, replace, "string", "nil")
   rc.expect(2, history, "table", "nil")
@@ -101,10 +102,16 @@ function term.read(replace, history, complete, default)
   local completions = {}
   local comp_id = 0
 
+  local function clearCompletion()
+    if completions[comp_id] then
+      rc.write((" "):rep(#completions[comp_id]))
+    end
+  end
+
   local function full_redraw(force)
     if force or dirty then
       if complete and buffer ~= prev_buf then
-        completions = complete(buffer)
+        completions = complete(buffer) or empty
         comp_id = math.min(1, #completions)
       end
       prev_buf = buffer
@@ -150,6 +157,7 @@ function term.read(replace, history, complete, default)
 
     if evt == "char" then
       dirty = true
+      clearCompletion()
       if cursor_pos == 0 then
         buffer = buffer .. id
       elseif cursor_pos == #buffer then
@@ -165,19 +173,31 @@ function term.read(replace, history, complete, default)
         dirty = true
         if cursor_pos == 0 then
           buffer = buffer:sub(1, -2)
-          if comp_id > 0 then
-            rc.write((" "):rep(#completions[comp_id]))
-          end
+          clearCompletion()
         elseif cursor_pos < #buffer then
           buffer = buffer:sub(0, -cursor_pos - 2)..buffer:sub(-cursor_pos)
         end
 
+      elseif id == "delete" and cursor_pos > 0 then
+        dirty = true
+
+        if cursor_pos == #buffer then
+          buffer = buffer:sub(2)
+        elseif cursor_pos == 1 then
+          buffer = buffer:sub(1, -2)
+        else
+          buffer = buffer:sub(0, -cursor_pos - 1) .. buffer:sub(-cursor_pos + 1)
+        end
+        cursor_pos = cursor_pos - 1
+
       elseif id == "up" then
         if #completions > 0 then
+          dirty = true
+          clearCompletion()
           if comp_id > 1 then
-            dirty = true
-            rc.write((" "):rep(#completions[comp_id]))
             comp_id = comp_id - 1
+          else
+            comp_id = #completions
           end
 
         elseif hist_pos > 1 then
@@ -195,10 +215,12 @@ function term.read(replace, history, complete, default)
 
       elseif id == "down" then
         if #completions > 0 then
+          dirty = true
+          clearCompletion()
           if comp_id < #completions then
-            dirty = true
-            rc.write((" "):rep(#completions[comp_id]))
             comp_id = comp_id + 1
+          else
+            comp_id = 1
           end
 
         elseif hist_pos < #history then
@@ -216,6 +238,7 @@ function term.read(replace, history, complete, default)
 
       elseif id == "left" then
         if cursor_pos < #buffer then
+          clearCompletion()
           cursor_pos = cursor_pos + 1
         end
 
@@ -228,6 +251,12 @@ function term.read(replace, history, complete, default)
           buffer = buffer .. completions[comp_id]
         end
 
+      elseif id == "tab" then
+        if comp_id > 0 then
+          dirty = true
+          buffer = buffer .. completions[comp_id]
+        end
+
       elseif id == "home" then
         cursor_pos = #buffer
 
@@ -235,9 +264,7 @@ function term.read(replace, history, complete, default)
         cursor_pos = 0
 
       elseif id == "enter" then
-        if comp_id > 0 then
-          rc.write((" "):rep(#completions[comp_id]))
-        end
+        clearCompletion()
         rc.write("\n")
         break
       end

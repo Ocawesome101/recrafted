@@ -15,7 +15,7 @@ function c.choice(text, choices, add_space)
   local options = {}
 
   for i=1, #choices, 1 do
-    if choices[i]:sub(1, #text) == text then
+    if choices[i]:sub(0, #text) == text then
       options[#options+1] = choices[i]:sub(#text+1) ..
         (add_space and " " or "")
     end
