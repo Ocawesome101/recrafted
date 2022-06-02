@@ -8,20 +8,25 @@ local thread = require("thread")
 local settings = require("settings")
 local multishell = require("multishell")
 
-function shell.init()
-  local vars = thread.vars()
+local function copyIfPresent(f, t)
+  if t[f] then
+    local old = t[f]
 
-  if vars.aliases then
-    local old = vars.aliases
-
-    vars.aliases = {}
+    t[f] = {}
     for k, v in pairs(old) do
-      vars.aliases[k] = v
+      t[f][k] = v
     end
 
   else
-    vars.aliases = {}
+    t[f] = {}
   end
+end
+
+function shell.init()
+  local vars = thread.vars()
+
+  copyIfPresent("aliases", vars)
+  copyIfPresent("completions", vars)
 
   vars.path = vars.path or string.format(
     ".:%s/programs", rc._ROM_DIR)
@@ -199,18 +204,41 @@ end
 
 function shell.complete(line)
   rc.expect(1, line, "string")
+
+  local words = tokenize(line)
+
+  if line:sub(-1) == " " and #words > 0 then
+    local complete = thread.vars().completions[words[1]]
+    if complete then
+      return complete(#words, "", words)
+    end
+  else
+    if #words == 1 then
+      return shell.completeProgram(words[1])
+
+    else
+      local complete = thread.vars().completions[words[1]]
+      if complete then
+        local arg = table.remove(words, #words)
+        return complete(#words + 1, arg, words)
+      end
+    end
+  end
 end
 
 function shell.completeProgram(line)
   rc.expect(1, line, "string")
+  return require("cc.shell.completion").program(line)
 end
 
 function shell.setCompletionFunction(program, complete)
   rc.expect(1, program, "string")
   rc.expect(2, complete, "function")
+  thread.vars().completion[program] = complete
 end
 
 function shell.getCompletionInfo()
+  return thread.vars().completion
 end
 
 function shell.getRunningProgram()

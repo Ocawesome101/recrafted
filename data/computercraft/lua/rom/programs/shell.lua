@@ -43,7 +43,7 @@ while true do
   write(shell.dir().."> ")
   term.setTextColor(colors.white)
 
-  local text = term.read()
+  local text = term.read(nil, nil, shell.complete)
   if #text > 0 then
     local ok, err = shell.run(text)
     if not ok then

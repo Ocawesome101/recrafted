@@ -34,10 +34,10 @@ function fs.complete(path, location, include_files, include_dirs)
     local full = fs.combine(location, file)
     if files[i]:sub(1, #name) == name then
       local dir = fs.isDir(full)
-      if dir or include_files then
+      if (dir and include_dirs) or include_files then
         completions[#completions+1] = file:sub(#name+1)
       end
-      if dir and include_dirs then
+      if dir then
         completions[#completions+1] = file:sub(#name+1) .. "/"
       end
     end
