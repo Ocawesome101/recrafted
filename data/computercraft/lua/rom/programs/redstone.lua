@@ -9,7 +9,7 @@ local commands = {}
 local sides = {"top", "bottom", "left", "right", "front", "back"}
 
 function commands.probe()
-  textutils.coloredPrint(colors.yellow, "redstone inputs\n", colors.white)
+  textutils.coloredPrint(colors.yellow, "redstone inputs", colors.white)
   local inputs = {}
   for i=1, #sides, 1 do
     if rs.getInput(sides[i]) then

@@ -1,14 +1,11 @@
 -- threads
 
-local term = require("term")
 local colors = require("colors")
 local thread = require("thread")
 local strings = require("cc.strings")
 local textutils = require("textutils")
 
-term.setTextColor(colors.yellow)
-print("id   name")
-term.setTextColor(colors.white)
+textutils.coloredPrint(colors.yellow, "id   name", colors.white)
 
 local info = thread.info()
 for i=1, #info, 1 do

@@ -252,7 +252,7 @@ function shell.complete(line)
     local complete = thread.vars().completions[words[1]]
     if complete then
       table.remove(words, 1)
-      return complete(#words, "", words)
+      return complete(#words + 1, "", words)
     end
   else
     if #words == 1 then
@@ -271,7 +271,7 @@ end
 
 function shell.completeProgram(line)
   rc.expect(1, line, "string")
-  return require("cc.shell.completion").program(line)
+  return require("cc.shell.completion").program(line, true)
 end
 
 function shell.setCompletionFunction(program, complete)

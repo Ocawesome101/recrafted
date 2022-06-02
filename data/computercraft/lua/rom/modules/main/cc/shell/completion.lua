@@ -33,19 +33,32 @@ function c.dirOrFile(text, previous, add_space)
   return completed
 end
 
-function c.program(text)
+function c.program(text, add_space)
   expect(1, text, "string")
+  expect(2, add_space, "boolean", "table", "nil")
   local progs = shell.programs()
   table.sort(progs, function(a,b) return #a < #b end)
 
-  return completion.choice(text, progs)
+  return completion.choice(text, progs, add_space)
 end
 
 function c.programWithArgs(text, previous, starting)
   expect(1, text, "string")
   expect(2, previous, "table")
   expect(3, starting, "number")
-  error("cc.shell.completion.programWithArgs is not yet implemented", 0)
+
+  if not previous[starting] then
+    return shell.completeProgram(text)
+  end
+
+  local command = previous[starting]
+  command = shell.aliases()[command] or command
+  local complete = shell.getCompletionInfo()[command]
+
+  if complete then
+    return complete(#previous - starting + 1, text,
+      {table.unpack(previous, starting)})
+  end
 end
 
 for k,v in pairs(completion) do
@@ -71,7 +84,7 @@ function c.build(...)
     end
 
     if not complete then
-      return current
+      return {}
     end
 
     if type(complete) == "function" then
