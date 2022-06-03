@@ -1,7 +1,5 @@
 -- rc.rednet
 
-error("rednet is not fully implemented", 0)
-
 local expect = require("cc.expect").expect
 local peripheral = require("peripheral")
 
@@ -65,9 +63,29 @@ function rednet.send(to, message, protocol)
 end
 
 function rednet.broadcast(message, protocol)
-  expect(2, message, "string", "table", "number", "boolean")
-  expect(3, protocol, "string", "nil")
-  
+  expect(1, message, "string", "table", "number", "boolean")
+  expect(2, protocol, "string", "nil")
+  call("transmit", nil, false, false, rednet.CHANNEL_BROADCAST,
+    rednet.CHANNEL_BROADCAST, message)
+end
+
+function rednet.receive(protocol, timeout)
+  expect(1, protocol, "string", "nil")
+  timeout = expect(2, timeout, "number", "nil") or math.huge
+
+  local timer
+  if timeout then
+    timer = os.startTimer(timer)
+  end
+
+  while true do
+    local event = table.pack(os.pullEvent())
+    if event[1] == "timer" and event[2] == timer then return end
+    if event[1] == "rednet_message" and (event[4] == protocol or
+        not protocol) then
+      return table.unpack(event, 2)
+    end
+  end
 end
 
 local running = false
@@ -83,7 +101,8 @@ function rednet.run()
     if event[1] == "modem_message" then
       local message = event[5]
       if type(message) == "table" then
-        if message[1] == "rednet_message" and message[2] == os.computerID() then
+        if message[1] == "rednet_message" and (message[2] == os.computerID() or
+            message[2] == rednet.CHANNEL_BROADCAST) then
           os.queueEvent("rednet_message", event[3], message[2], message[3])
         end
       end
