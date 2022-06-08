@@ -15,73 +15,52 @@ end
 
 local Reader = {}
 
-local punct = {
-  [','] = true,
-  ['('] = true,
-  [')'] = true,
-  ['.'] = true,
-  [';'] = true,
-  ['!'] = true,
-  ['?'] = true,
-}
-
-local function nextIsPunctuation(l, i)
-  for j=i+1, #l, 1 do
-    if type(l[j]) == "string" then
-      return punct[l[j]:sub(1,1) or ""]
-    end
-  end
-end
-
-local function isPunctuation(l, i)
-  if type(l[i]) == "string" then
-    return punct[l[i]]
-  end
-end
-
--- TODO: perhaps make this a little smarter
-local function ensureWidth(line, width)
-  local lengths = {}
-  local total = 0
-  for i=1, #line, 1 do
-    if type(line[i]) == "string" then
-      lengths[i] = #line[i]
-      total = total + #line[i]
-    else
-      lengths[i] = 0
-    end
-  end
-
-  while lengths[#lengths] == 0 do lengths[#lengths] = nil end
-
-  while total < width do
-    local changed = false
-    for i=1, #lengths, 1 do
-      if total < width and lengths[i] > 0 and i < #lengths and (not
-          nextIsPunctuation(line, i)) then
-        line[i] = line[i] .. " "
-        total = total + 1
-        changed = true
-      end
-    end
-    if not changed then break end
-  end
-end
-
-local function getlen(cl)
+local function getlen(cline, real)
   local len = 0
 
-  for i=1, #cl, 1 do
-    if type(cl[i]) == "string" then
-      len = len + #cl[i] + 1
+  for i=1, #cline, 1 do
+    if type(cline[i]) == "string" then
+      len = len + #cline[i] + ((real and 0) or 1)
     end
   end
 
   return len
 end
 
+local punct = "^[,%.;:] *$"
+local function ensureWidth(line, width)
+  local len = getlen(line, true)
+
+  while len < width do
+    if len < width then
+      -- first, go through and add spaces after punctuation
+      for i=1, #line, 1 do
+        if type(line[i]) == "string" and line[i]:match(punct) and
+              line[i]:sub(-1) ~= "\n" then
+          line[i] = line[i] .. " "
+          len = len + 1
+          if len == width then break end
+        end
+      end
+    end
+
+    if len < width then
+      for i=1, #line, 1 do
+        if type(line[i]) == "string" and line[i]:sub(-1) ~= "\n" and not
+            (type(line[i+1]) == "string" and line[i+1]:match(punct)) then
+          line[i] = line[i] .. " "
+          len = len + 1
+          if len == width then break end
+        end
+      end
+    end
+  end
+end
+
 function Reader:init()
-  local lines = {{}}
+  local elements = {}
+
+  local cline = {}
 
   local iter = function()
     return self.file:read("l")
@@ -89,8 +68,35 @@ function Reader:init()
 
   local indent = 0
 
+  local function addLine(setwidth)
+    cline[#cline+1] = "\n"
+    local str = 1
+    for i=1, #cline, 1 do
+      if type(cline[i]) == "string" then
+        str = i
+        break
+      end
+    end
+
+    cline[str] = (" "):rep(indent) .. cline[str]
+
+    if setwidth then
+      ensureWidth(cline, self.width - indent)
+    else
+      for i=1, #cline, 1 do
+        if type(cline[i]) == "string" and not (type(cline[i+1]) == "string"
+            and cline[i+1]:match(punct)) and cline[i]:sub(-1) ~= "\n" then
+          cline[i] = cline[i] .. " "
+        end
+      end
+    end
+    for i=1, #cline, 1 do
+      elements[#elements+1] = cline[i]
+    end
+    cline = {}
+  end
+
   for line in iter do
-    local cline = lines[#lines]
     if line:sub(1,1) == "." then
       local directive, arg = line:match("^%.([^ ]+) +([^ ]+)$")
       if not directive then
@@ -104,40 +110,9 @@ function Reader:init()
         cline[#cline+1] = colors[arg]
 
       elseif directive == "break" then
-        arg = tonumber(arg)
-
-        if not arg then
-          error("not a number: " .. arg, 0)
+        for _=1, tonumber(arg), 1 do
+          addLine(false)
         end
-
-        ensureWidth(cline, math.min(self.width-indent-1, getlen(cline)-1))
-        cline[#cline+1] = "\n"
-        for i=1, arg, 1 do
-          lines[#lines+1] = {i < arg and "\n" or ""}
-        end
-
-      elseif directive == "head" then
-        cline[#cline+1] = "\n"
-        if #lines > 0 then
-          lines[#lines+1] = {"\n"}
-        end
-
-        local text = iter()
-        lines[#lines+1] = {colors.yellow, text, "\n"}
-        lines[#lines+1] = {("="):rep(#text), colors.white,"\n"}
-
-        lines[#lines+1] = {"\n"}
-        lines[#lines+1] = {(" "):rep(indent)}
-
-      elseif directive == "ident" then
-        error(".ident is broken", 0)
-        indent = tonumber(arg)
-        if not indent then
-          error("not a number: " .. arg, 0)
-        end
-
-      else
-        error("bad directive: " .. directive, 0)
       end
 
     else
@@ -145,12 +120,8 @@ function Reader:init()
       for i=1, #words, 1 do
         local len = getlen(cline)
 
-        if len + #words[i] > self.width - indent - 1 then
-          ensureWidth(cline, self.width - indent - 1)
-          cline[#cline+1] = "\n"
-          cline[1] = (" "):rep(indent) .. cline[1]
-          lines[#lines+1] = {}
-          cline = lines[#lines]
+        if len + #words[i] > self.width - indent then
+          addLine(true)
         end
 
         cline[#cline+1] = words[i]
@@ -159,15 +130,6 @@ function Reader:init()
   end
 
   self.file:close()
-
-  local elements = {}
-
-  for i=1, #lines, 1 do
-    local line = lines[i]
-    for e=1, #line, 1 do
-      elements[#elements+1] = line[e]
-    end
-  end
 
   self.elements = elements
   self.eid = 0
