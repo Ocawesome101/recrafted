@@ -12,6 +12,7 @@ rc.platform = {
   command = not not commands,
   turtle = not not turtle,
   pocket = not not pocket,
+  http = not not http,
 }
 
 local function rm(api)

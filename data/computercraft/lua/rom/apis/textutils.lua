@@ -33,11 +33,11 @@ function tu.formatTime(time, _24h)
   return os.date(fmt, time)
 end
 
-local function pagedWrite(text)
+local function pagedWrite(text, begin)
   local _, h = rc.term.getSize()
 
   local realTotal = 0
-  local total = 0
+  local total = begin
 
   for c in text:gmatch(".") do
     local writ = rc.write(c)
@@ -49,14 +49,14 @@ local function pagedWrite(text)
       term.setTextColor(colors.white)
       rc.write("Press any key to continue")
       term.setTextColor(old)
-      os.pullEvent("key")
+      os.pullEvent("char")
       local _, y = term.getCursorPos()
       term.at(1, y).clearLine()
       total = 0
     end
   end
 
-  return realTotal
+  return realTotal, total
 end
 
 function tu.pagedPrint(text)
@@ -67,15 +67,20 @@ end
 local function coloredWrite(paged, ...)
   local args = table.pack(...)
   local lines = 0
+  local pageLines = 0
 
   local write = paged and pagedWrite or rc.write
   local old = term.getTextColor()
+  local _, h = term.getSize()
 
   for i=1, args.n, 1 do
     if type(args[i]) == "number" then
       term.setTextColor(args[i])
     else
-      lines = lines + write(args[i])
+      local _lines, _tot = write(args[i], pageLines)
+      lines = lines + _lines
+      pageLines = _tot or 0
+      while pageLines > h do pageLines = pageLines - h end
     end
   end
 
@@ -279,6 +284,10 @@ end
 
 function tu.coloredPrint(...)
   return coloredWrite(false, ...) + rc.write("\n")
+end
+
+function tu.coloredPagedPrint(...)
+  return coloredWrite(true, ...) + rc.write("\n")
 end
 
 return tu

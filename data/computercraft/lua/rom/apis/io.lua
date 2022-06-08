@@ -64,7 +64,7 @@ function _file:write(...)
     self.handle.write(args[i])
   end
 
-  return true
+  return self
 end
 
 function _file:seek(whence, offset)
@@ -79,6 +79,7 @@ end
 
 function _file:flush()
   if self.handle.flush then self.handle.flush() end
+  return self
 end
 
 function _file:close()

@@ -1,0 +1,218 @@
+.head 1
+New In Recrafted
+
+The following is a non-exhaustive list of new and/or changed features in Recrafted compared to CraftOS.
+
+.head 1
+Major Changes
+
+.color red
+-
+.color lightGray
+os.loadAPI
+.color white
+has been completely omitted.
+
+.break 2
+.color red
+-
+.color lightGray
+*
+.color white
+All APIs except the standard Lua ones must be loaded using
+.color lightGray
+require
+.color white
+before they can be used.
+
+.break 2
+.color red
+-
+.color lightGray
+*
+.color white
+Lua 5.1 builtins have been removed from
+.color lightGray
+_G
+.color white
+, but can be accessed through
+.color lightGray
+require(
+.color red
+"lua51"
+.color lightGray
+)
+.color white
+ .
+
+.break 2
+
+.color red
+-
+.color white
+Startup scripts from
+.color yellow
+/startup
+.color white
+are run in parallel as separate threads.
+
+.break 2
+
+.color red
+-
+.color white
+Recrafted has full native support for multithreading -- custom schedulers are no longer necessary!
+
+.break 2
+
+.color red
+-
+.color white
+Multishell can be used even on standard (non-advanced) computers, using Alt+Left and Alt+Right to switch tabs.  There is no dedicated Multishell program - only the API.  A Multishell instance may be started at any time using
+.color lightGray
+multishell.launch
+.color white
+ .
+
+.break 2
+
+.color lightGray
+*
+.color white
+These do not apply when compatibility mode is enabled.
+
+.head 1
+New API Methods
+
+Recrafted features a few extensions to the CraftOS APIs:
+
+.break 2
+
+.color red
+-
+.color lightGray
+textutils.coloredWrite
+.color white
+(...):
+.break 1
+Similar to
+.color lightGray
+textutils.tabulate
+.color white
+(), but takes strings instead of tables and doesn't tabulate its arguments.  Useful for easy printing of colorized text.  Returns the number of lines written.
+
+
+.break 2
+
+.color red
+-
+.color lightGray
+textutils.coloredPrint
+.color white
+(...):
+.break 1
+Like
+.color lightGray
+textutils.coloredWrite
+.color white
+(), but prints an extra newline at the end of the text, similar to
+.color lightGray
+print
+.color white
+().
+
+
+.break 2
+
+.color red
+-
+.color white
+Tables given to
+.color lightGray
+textutils.tabulate
+.color white
+() may contain tables, along with strings and numbers; if a table is present, it must contain a set of arguments suitable for passing to
+.color lightGray
+textutils.coloredWrite
+.color white
+().
+
+.break 2
+
+.color red
+-
+.color white
+Recrafted's
+.color lightGray
+paintutils
+.color white
+API uses the BIMG (Blit Image) format for its images.  This format supports animations and lots of other useful metadata, plus combining text and images.  See
+.color blue
+https://github.com/SkyTheCodeMaster/bimg
+.color white
+for details on the format.
+
+.break 3
+The Multishell foreground thread management functions should only be used when absolutely necessary. If they ARE necessary, these should be used instead of the corresponding thread API functions regardless of whether multishell is actually enabled, to ensure proper behavior when it IS enabled.
+.break 2
+The foregdround thread is the only thread that will respond to
+.color red
+terminate
+.color white
+events.  Ensuring that it is set correctly is therefore quite important.  Under mot circumstances you should not need to use these functions, since
+.color lightGray
+shell.run
+.color white
+() uses them behind the scenes.
+.break 2
+These should not be confused with Multishell's
+.color lightGray
+getFocus
+.color white
+() and
+.color lightGray
+setFocus
+.color white
+() functions, which manage the focused tab.
+.break 2
+.color red
+-
+.color lightGray
+multishell.getForeground
+.color white
+():
+.break 1
+Returns the foreground thread ID of the current tab.
+.break 2
+.color red
+-
+.color lightGray
+multishell.pushForeground
+.color white
+(
+.color magenta
+pid
+.color white
+):
+.break 1
+Adds a thread to the current tab's foreground stack;  the given thread will be removed when it exits.
+.break 2
+.color red
+-
+.color lightGray
+multishell.switchForeground
+.color white
+(
+.color magenta
+pid
+.color white
+):
+.break 1
+Changes the top entry of the current tab's foreground stack;  replaces the old entry.
+.break 2
+.color red
+-
+.color lightGray
+multishell.launch
+.color white
+()'s first argument, the environment, is optional and may be completely omitted.
