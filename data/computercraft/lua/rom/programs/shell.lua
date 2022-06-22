@@ -42,14 +42,16 @@ if fs.exists("/startup.lua") then
   end
 end
 
+local history = {}
 while true do
   term.setTextColor(colors.yellow)
   term.setBackgroundColor(colors.black)
   write(shell.dir().."> ")
   term.setTextColor(colors.white)
 
-  local text = term.read(nil, nil, shell.complete)
+  local text = term.read(nil, history, shell.complete)
   if #text > 0 then
+    history[#history+1] = text
     local ok, err = shell.run(text)
     if not ok then
       printError(err)

@@ -226,7 +226,7 @@ local function serialize(t, _seen)
     ret = ret .. "}"
   elseif type(t) == "function" or type(t) == "thread" or
       type(t) == "userdata" then
-    error("cannot serialize type " .. t, 2)
+    error("cannot serialize type " .. type(t), 2)
   else
     return string.format("%q", t)
   end

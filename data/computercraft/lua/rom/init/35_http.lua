@@ -94,6 +94,7 @@ end
 function http.post(url, body, headers, binary)
   if type(url) == "table" then
     url.sync = true
+    url.method = "POST"
     return http.request(url)
   else
     return http.request(url, body, headers, binary, "POST", true)

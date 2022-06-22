@@ -19,7 +19,9 @@ while run do
   term.setTextColor(colors.white)
   io.write("lua> ")
   local data = term.read(nil, history)
-  history[#history+1] = data
+  if #data > 0 then
+    history[#history+1] = data
+  end
 
   local ok, err = load("return " .. data, "=stdin", "t", env)
   if not ok then

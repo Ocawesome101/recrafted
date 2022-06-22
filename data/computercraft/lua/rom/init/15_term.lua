@@ -86,7 +86,11 @@ function term.read(replace, history, complete, default)
   rc.expect(4, default, "string", "nil")
 
   if replace then replace = replace:sub(1, 1) end
-  history = history or {}
+  local hist = history or {}
+  history = {}
+  for i=1, #hist, 1 do
+    history[i] = hist[i]
+  end
 
   local buffer = default or ""
   local prev_buf = buffer
@@ -166,6 +170,18 @@ function term.read(replace, history, complete, default)
         buffer = buffer:sub(0, -cursor_pos - 1)..id..buffer:sub(-cursor_pos)
       end
 
+    elseif evt == "paste" then
+      dirty = true
+      clearCompletion()
+      if cursor_pos == 0 then
+        buffer = buffer .. id
+      elseif cursor_pos == #buffer then
+        buffer = id .. buffer
+      else
+        buffer = buffer:sub(0, -cursor_pos - 1)..id..
+          buffer:sub(-cursor_pos+(#id-1))
+      end
+
     elseif evt == "key" then
       id = keys.getName(id)
 
@@ -191,7 +207,7 @@ function term.read(replace, history, complete, default)
         cursor_pos = cursor_pos - 1
 
       elseif id == "up" then
-        if #completions > 0 then
+        if #completions > 1 then
           dirty = true
           clearCompletion()
           if comp_id > 1 then
@@ -214,7 +230,7 @@ function term.read(replace, history, complete, default)
         end
 
       elseif id == "down" then
-        if #completions > 0 then
+        if #completions > 1 then
           dirty = true
           clearCompletion()
           if comp_id < #completions then

@@ -23,10 +23,12 @@ devbin run <code> [argument ...]
 end
 
 local paste = "https://devbin.dev/api/v2/paste"
+local key = "aNVXl8vxYGWcZGvMnuJTzLXH53mGWOuQtBXU025g8YDAsZDu"
 
 local function get(code)
-  local handle, err = http.request("https://devbin.dev/raw/"..code)
+  local handle, err, rerr = http.get("https://devbin.dev/raw/"..code)
   if not handle then
+    if rerr then rerr.close() end
     error(err, 0)
   end
 
@@ -37,21 +39,29 @@ local function get(code)
 end
 
 if args[1] == "put" then
-  local handle, err = io.open(shell.resolve(args[2]), "w")
+  local handle, err = io.open(shell.resolve(args[2]), "r")
   if not handle then error(err, 0) end
   local data = handle:read("a")
   handle:close()
 
+  if (not data) or #data == 0 then
+    error("cannot 'put' empty file", 0)
+  end
+
   local request = json.encode({
+    title = args[2],
+    syntax = "lua",
     exposure = 0,
     content = data,
     asGuest = true
   })
 
-  local response, rerr = http.post(paste, request,
-    {["content-type"]="application/json"}, true)
+  local response, rerr, rerr2 = http.post(paste, request,
+    {["Content-Type"]="application/json", Authorization = key}, true)
   if not response then
+    if rerr2 then rerr2.close() end
     error(rerr, 0)
+    --("%q: %q"):format(rerr, (rerr2 and rerr2.readAll()) or ""), 0)
   end
 
   local rdata = response.readAll()
