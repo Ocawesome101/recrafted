@@ -160,6 +160,14 @@ if _VERSION == "Lua 5.1" then
 
     return result, err
   end
+
+  local old_xpcall = xpcall
+  function _G.xpcall(call, func, ...)
+    local args = table.pack(...)
+    return old_xpcall(function()
+      return call(table.unpack(args, 1, args.n))
+    end, func)
+  end
 end
 
 function _G.loadfile(file, mode, env)

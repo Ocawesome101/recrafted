@@ -190,7 +190,7 @@ local function processInput()
         state.cy = state.cy + 1
 
         if state.cy - state.scroll > h - scroll_offset then
-          state.scroll = math.max(0, math.min(#state.lines - h,
+          state.scroll = math.max(0, math.min(#state.lines - h + 1,
             state.cy - h + scroll_offset))
         end
       end

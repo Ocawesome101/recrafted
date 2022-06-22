@@ -263,6 +263,9 @@ function tu.unserializeJSON(s)--s, options)
   return json.decode(s)
 end
 
+tu.serialiseJSON = tu.serializeJSON
+tu.unserialiseJSON = tu.unserializeJSON
+
 function tu.urlEncode(str)
   rc.expect(1, str, "string")
 
