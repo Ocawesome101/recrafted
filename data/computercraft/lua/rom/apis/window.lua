@@ -322,6 +322,11 @@ function window.create(parent, x, y, width, height, visible)
     end
   end
 
+  function win.at(_x, _y)
+    win.setCursorPos(_x, _y)
+    return win
+  end
+
   win.clear()
   return win
 end

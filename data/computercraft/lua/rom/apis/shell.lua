@@ -222,7 +222,7 @@ function shell.programs(hidden)
 
   local seen = {}
   for search in thread.vars().path:gmatch("[^:]+") do
-    local files = fs.list(search)
+    local files = fs.list(shell.resolve(search))
     for i=1, #files, 1 do
       programs[#programs+1] = files[i]:match("^(.+)%.lua$")
       if programs[#programs] then
@@ -233,6 +233,10 @@ function shell.programs(hidden)
 
   for alias in pairs(shell.aliases()) do
     if not seen[alias] then programs[#programs+1] = alias end
+  end
+
+  for builtin in pairs(builtins) do
+    if not seen[builtin] then programs[#programs+1] = builtin end
   end
 
   return programs

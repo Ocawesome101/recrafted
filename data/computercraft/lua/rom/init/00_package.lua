@@ -6,7 +6,7 @@ _G.package = {}
 
 package.config = "/\n;\n?\n!\n-"
 package.cpath = ""
-package.path = string.gsub("$/apis/?.lua;$/modules/main/?.lua;./?.lua;./?/init.lua",
+package.path = string.gsub("$/apis/?.lua;$/modules/main/?.lua;./lib/?.lua;./lib/?/init.lua;./?.lua;./?/init.lua",
   "%$", rc._ROM_DIR)
 
 package.loaded = {
@@ -80,6 +80,10 @@ function package.searchpath(name, path, sep, rep)
 
   for search in path:gmatch("[^;]+") do
     search = search:gsub("%?", name)
+    if search:sub(1,1) == "." then
+      search = fs.combine(require("thread").dir(), search)
+    end
+
     if fs.exists(search) then
       return search
     else
