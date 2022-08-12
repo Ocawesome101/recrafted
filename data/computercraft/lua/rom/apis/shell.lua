@@ -26,11 +26,14 @@ end
 
 shell.__has_run_startup = false
 
+local completions = {[0]={}}
+
 function shell.init()
   local vars = thread.vars()
 
   copyIfPresent("aliases", vars)
-  copyIfPresent("completions", vars)
+  vars.parentShell = thread.id()
+  completions[vars.parentShell] = {}
 
   vars.path = vars.path or string.format(
     ".:%s/programs", rc._ROM_DIR)
@@ -283,11 +286,11 @@ end
 function shell.setCompletionFunction(program, complete)
   rc.expect(1, program, "string")
   rc.expect(2, complete, "function")
-  thread.vars().completions[program] = complete
+  completions[thread.vars().parentShell or 0][program] = complete
 end
 
 function shell.getCompletionInfo()
-  return thread.vars().completions
+  return completions[thread.vars().parentShell or 0]
 end
 
 function shell.getRunningProgram()
