@@ -37,7 +37,7 @@ local function pagedWrite(text, begin)
   local _, h = rc.term.getSize()
 
   local realTotal = 0
-  local total = begin
+  local total = begin or 0
 
   for c in text:gmatch(".") do
     local writ = rc.write(c)
