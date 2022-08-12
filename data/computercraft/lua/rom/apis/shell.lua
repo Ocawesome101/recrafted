@@ -258,7 +258,7 @@ function shell.complete(line)
   end
 
   if line:sub(-1) == " " and #words > 0 then
-    local complete = thread.vars().completions[words[1]]
+    local complete = completions[thread.vars().parentShell or 0][words[1]]
     if complete then
       table.remove(words, 1)
       return complete(#words + 1, "", words)
@@ -268,7 +268,7 @@ function shell.complete(line)
       return shell.completeProgram(words[1])
 
     else
-      local complete = thread.vars().completions[words[1]]
+      local complete = completions[thread.vars().parentShell or 0][words[1]]
       if complete then
         local arg = table.remove(words, #words)
         table.remove(words, 1)
