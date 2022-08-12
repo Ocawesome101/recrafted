@@ -80,7 +80,7 @@ function p.hasType(per, ptype)
     local place = findByName(per)
 
     if place == 0 then
-      return old.hasType(per)
+      return old.hasType(place, per)
 
     elseif place then
       return old.call(place, "hasTypeRemote", per)
