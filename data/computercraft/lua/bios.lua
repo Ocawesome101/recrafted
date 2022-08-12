@@ -211,11 +211,40 @@ end
 local thread = require("thread")
 local settings = require("settings")
 
+local function runStartupScripts()
+  if rc.fs.exists("/startup") then
+    if not rc.fs.isDir("/startup") then
+      rc.printError("/startup is not a directory")
+      rc.sleep(1)
+    else
+      print("Loading startup scripts.")
+
+      local startup = rc.fs.list("/startup")
+      table.sort(startup)
+      for i=1, #startup, 1 do
+        if settings.get("bios.parallel_startup") then
+          thread.add(function()
+            dofile("/startup/"..startup[i])
+          end, "startup/"..startup[i])
+        else
+          local ok, err = pcall(dofile, "/startup/"..startup[i])
+          if not ok and err then
+            rc.printError(err)
+          end
+        end
+      end
+    end
+  end
+end
+
 if settings.get("bios.compat_mode") then
   thread.add(function()
     local sh = require("shell")
     sh.init()
     rc.term.at(1,1).clear()
+
+    runStartupScripts()
+
     local ok, err = sh.run("/rom/programs/craftos.lua",
       "/rom/programs/shell.lua")
     if not ok then
@@ -232,29 +261,16 @@ else
   end
 
   if settings.get("bios.use_multishell") then
-    require("multishell").launch(nil, "/rom/programs/shell.lua")
+    thread.add(function()
+      runStartupScripts()
+      require("multishell").launch(nil, "/rom/programs/shell.lua")
+    end)
   else
     thread.add(function()
       rc.term.at(1,1).clear()
+      runStartupScripts()
       dofile("/rom/programs/shell.lua")
     end, "shell")
-  end
-end
-
-if rc.fs.exists("/startup") then
-  if not rc.fs.isDir("/startup") then
-    rc.printError("/startup is not a directory")
-    rc.sleep(1)
-  else
-    print("Loading startup scripts.")
-
-    local startup = rc.fs.list("/startup")
-    table.sort(startup)
-    for i=1, #startup, 1 do
-      thread.add(function()
-        dofile("/startup/"..startup[i])
-      end, "startup/"..startup[i])
-    end
   end
 end
 

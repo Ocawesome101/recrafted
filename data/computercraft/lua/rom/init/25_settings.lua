@@ -39,4 +39,10 @@ settings.define("bios.restrict_globals", {
   default = false
 })
 
+settings.define("bios.parallel_startup", {
+  description = "Run startup scripts from /startup in parallel",
+  type = "boolean",
+  default = false
+})
+
 settings.load()

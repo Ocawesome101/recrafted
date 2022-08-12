@@ -12,6 +12,14 @@ textutils.coloredPrint(colors.yellow, os.version(), colors.white)
 
 shell.init()
 
+if fs.exists("/startup.lua") and not shell.__has_run_startup then
+  shell.__has_run_startup = true
+  local ok, err = pcall(dofile, "/startup.lua")
+  if not ok and err then
+    printError(err)
+  end
+end
+
 local aliases = {
   background = "bg",
   clr = "clear",
@@ -33,13 +41,6 @@ end
 local completions = fs.combine(require("rc")._ROM_DIR, "completions")
 for _, prog in ipairs(fs.list(completions)) do
   dofile(fs.combine(completions, prog))
-end
-
-if fs.exists("/startup.lua") then
-  local ok, err = pcall(dofile, "/startup.lua")
-  if not ok and err then
-    printError(err)
-  end
 end
 
 local history = {}

@@ -24,6 +24,8 @@ local function copyIfPresent(f, t)
   end
 end
 
+shell.__has_run_startup = false
+
 function shell.init()
   local vars = thread.vars()
 
