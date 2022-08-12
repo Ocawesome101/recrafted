@@ -157,6 +157,7 @@ local mouse_events = {
 }
 
 local raw_yield = coroutine.yield
+local raw_addthread = thread.add
 local alt_is_down = false
 
 local function tryEvent(sig, result)
@@ -218,8 +219,22 @@ function api.launch(env, path, ...)
 
   local tab = {}
 
-  local function yield(...)
+  local yield, add_thread
+
+  add_thread = function(func, name)
+    return raw_addthread(function()
+      coroutine.yield = yield
+      thread.add = add_thread
+      term.redirect(tab.term)
+      current = tab.id
+
+      func()
+    end, name)
+  end
+
+  yield = function (...)
     coroutine.yield = raw_yield
+    thread.add = raw_addthread
 
     redraw()
 
@@ -232,6 +247,7 @@ function api.launch(env, path, ...)
 
         if shouldReturn then
           coroutine.yield = yield
+          thread.add = add_thread
           tab.interact = true
           current = tab.id
 
@@ -245,6 +261,7 @@ function api.launch(env, path, ...)
     local sh = require("shell")
     sh.init()
     coroutine.yield = yield
+    thread.add = add_thread
     term.redirect(tab.term)
     current = tab.id
 
@@ -267,7 +284,7 @@ function api.launch(env, path, ...)
     title = fs.getName(path),
     term = window.create(currentTerm, 1, tabid > 2 and 2 or 1,
       w, h - (tabid > 2 and 1 or 0), false),
-    pid = thread.add(exec, path),
+    pid = raw_addthread(exec, path),
     interact = false,
     foreground = {},
     id = tabid
