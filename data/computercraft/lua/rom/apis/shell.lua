@@ -310,7 +310,7 @@ function shell.aliases()
 end
 
 function shell.openTab(...)
-  return require("multishell").openTab(...)
+  return require("multishell").launch(...)
 end
 
 function shell.switchTab(id)

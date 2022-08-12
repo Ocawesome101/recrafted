@@ -180,5 +180,5 @@ function p.find(ptype, filter)
     end
   end
 
-  return wrapped
+  return table.unpack(wrapped)
 end

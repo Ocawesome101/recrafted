@@ -24,15 +24,15 @@ function fs.complete(path, location, include_files, include_dirs)
     location = fs.combine(location, fs.getDir(path))
   end
 
+  local completions = {}
+
   if not fs.exists(location) or not fs.isDir(location) then
-    return nil
+    return completions
   end
 
   local name = fs.getName(path)
   if path:sub(-1) == "/" then name = "" end
   local files = fs.list(location)
-
-  local completions = {}
 
   for i=1, #files, 1 do
     local file = files[i]
