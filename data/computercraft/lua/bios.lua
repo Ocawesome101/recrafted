@@ -224,10 +224,12 @@ if settings.get("bios.compat_mode") then
     end
   end)
 else
-  -- disallow globals
-  setmetatable(_G, {__newindex = function(_, k)
-    error("attempt to create global variable " .. k)
-  end, __metatable = {}})
+  if settings.get("bios.restrict_globals") then
+    -- disallow globals
+    setmetatable(_G, {__newindex = function(_, k)
+      error("attempt to create global variable " .. k)
+    end, __metatable = {}})
+  end
 
   if settings.get("bios.use_multishell") then
     require("multishell").launch(nil, "/rom/programs/shell.lua")

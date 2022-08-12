@@ -33,4 +33,10 @@ settings.define("edit.scroll_offset", {
   default = 3
 })
 
+settings.define("bios.restrict_globals", {
+  description = "Disallow global variables",
+  type = "boolean",
+  default = false
+})
+
 settings.load()
