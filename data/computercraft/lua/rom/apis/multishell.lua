@@ -167,6 +167,8 @@ local function tryEvent(sig, result)
     local x, y = result[3], result[4]
     if #tabs > 1 then
       y = y - 1
+      result[4] = y
+
       if y == 0 then
         shouldReturn = false
         local _x = 0
