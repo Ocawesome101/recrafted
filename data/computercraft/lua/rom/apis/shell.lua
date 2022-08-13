@@ -32,8 +32,7 @@ function shell.init()
   local vars = thread.vars()
 
   copyIfPresent("aliases", vars)
-  vars.parentShell = thread.id()
-  completions[vars.parentShell] = {}
+  completions[vars.parentShell or 0] = completions[vars.parentShell or 0] or {}
 
   vars.path = vars.path or string.format(
     ".:%s/programs", rc._ROM_DIR)

@@ -5,11 +5,13 @@ local term = require("term")
 local shell = require("shell")
 local write = require("write")
 local colors = require("colors")
+local thread = require("thread")
 local textutils = require("textutils")
 local printError = require("printError")
 
 textutils.coloredPrint(colors.yellow, os.version(), colors.white)
 
+thread.vars().parentShell = thread.id()
 shell.init()
 
 if fs.exists("/startup.lua") and not shell.__has_run_startup then
