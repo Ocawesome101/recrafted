@@ -4,7 +4,13 @@
 -- You require `recrafted` to get access to them.
 local rc = {}
 
-rc._ROM_DIR = "/rom"
+if _RC_ROM_DIR then
+  rc._ROM_DIR = _RC_ROM_DIR
+  _G._RC_ROM_DIR = nil
+else
+  rc._ROM_DIR = "/rom"
+end
+
 rc.platform = {
   os = "Recrafted",
   version = "1.01",
