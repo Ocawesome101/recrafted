@@ -15,7 +15,8 @@ license with permission from their authors.
 
 To use Recrafted, simply clone this repository into
 .minecraft/saves/YOUR_WORLD/datapacks/recrafted and
-reload the world.
+reload the world.   You  can  also use the provided
+installer,  though  this  is not as well supported.
 
 
 Recrafted addresses several  major pain points many
