@@ -77,8 +77,13 @@ local function coloredWrite(paged, ...)
     if type(args[i]) == "number" then
       term.setTextColor(args[i])
     elseif type(args[i]) == "table" then
-      term.setTextColor(args[i].fg or args[i][1])
-      term.setBackgroundColor(args[i].bg or args[i][2])
+      if args[i].fg or args[i][1] then
+        term.setTextColor(args[i].fg or args[i][1])
+      end
+
+      if args[i].bg or args[i][2] then
+        term.setBackgroundColor(args[i].bg or args[i][2])
+      end
     else
       local _lines, _tot = write(args[i], pageLines)
       lines = lines + _lines
