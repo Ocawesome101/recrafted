@@ -1,5 +1,7 @@
 -- Recrafted installer
 
+print("Downloading required libraries...")
+
 local function dl(f)
   local hand, err = http.get(f, nil, true)
   if not hand then
