@@ -26,4 +26,4 @@ function os.version()
   return "CraftOS 1.8"
 end
 
-shell.run("/rom/programs/shell.lua")
+shell.run(require'rc'._ROM_DIR.."/programs/shell.lua")
