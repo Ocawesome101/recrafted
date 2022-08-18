@@ -114,5 +114,10 @@ term.clearLine()
 term.at(okx, oky)
 ok()
 
-settings.set("")
+assert(io.open("/startup.lua", "w"))
+  :write(dl(
+   "https://raw.githubusercontent.com/ocawesome101/recrafted/primary/unbios.lua"
+  )):close()
+
+settings.set("recrafted.rom_dir", "/rc")
 settings.save()
