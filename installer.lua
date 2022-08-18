@@ -103,14 +103,24 @@ bullet("Downloading files...")
 local okx, oky = term.getCursorPos()
 io.write("\n")
 local _, pby = term.getCursorPos()
+
+local parallels = {}
+local done = 0
+
 for i=1, #to_dl, 1 do
   local v = to_dl[i]
   if v.type == "blob" then
-    progress(pby, i, #to_dl)
-    local data = dl("https://raw.githubusercontent.com/ocawesome101/recrafted/primary/data/computercraft/lua/"..v.path)
-    assert(io.open(v.real_path, "w")):write(data):close()
+    parallels[#parallels+1] = function()
+      local data = dl("https://raw.githubusercontent.com/ocawesome101/recrafted/primary/data/computercraft/lua/"..v.path)
+      assert(io.open(v.real_path, "w")):write(data):close()
+      done = done + 1
+      progress(pby, done, #to_dl)
+    end
   end
 end
+
+parallel.waitForAll(table.unpack(parallels))
+
 term.at(1, pby).write((" "):rep((term.getSize())))
 term.at(okx, oky)
 ok()
