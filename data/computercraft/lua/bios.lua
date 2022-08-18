@@ -251,8 +251,8 @@ if settings.get("bios.compat_mode") then
 
     runStartupScripts()
 
-    local ok, err = sh.run("/rom/programs/craftos.lua",
-      "/rom/programs/shell.lua")
+    local ok, err = sh.run(rc.ROM_DIR.."/programs/craftos.lua",
+      rc.ROM_DIR.."/programs/shell.lua")
     if not ok then
       rc.printError(err)
       rc.sleep(1)
@@ -269,13 +269,13 @@ else
   if settings.get("bios.use_multishell") then
     thread.add(function()
       runStartupScripts()
-      require("multishell").launch(nil, "/rom/programs/shell.lua")
+      require("multishell").launch(nil, rc.ROM_DIR.."/programs/shell.lua")
     end)
   else
     thread.add(function()
       rc.term.at(1,1).clear()
       runStartupScripts()
-      dofile("/rom/programs/shell.lua")
+      dofile(rc.ROM_DIR.."/programs/shell.lua")
     end, "shell")
   end
 end

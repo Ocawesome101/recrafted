@@ -49,8 +49,9 @@ local function progress(y, a, b)
   local w = term.getSize()
   local bar = (" "):rep(math.ceil((w-2) * progress))
   term.at(1, y)
-  tu.coloredPrint(colors.yellow, "[", {bg=colors.white}, bar,
-    {bg=colors.black}, (" "):rep((w-2)-#bar), colors.yellow, "]")
+  tu.coloredPrint(colors.yellow, "[", {fg=colors.white, bg=colors.white}, bar,
+    {fg=colors.white, bg=colors.black}, (" "):rep((w-2)-#bar),
+    colors.yellow, "]")
 end
 
 term.at(1,1).clear()
@@ -110,11 +111,11 @@ for i=1, #to_dl, 1 do
     assert(io.open(v.real_path, "w")):write(data):close()
   end
 end
-term.clearLine()
+term.at(1, pby).write((" "):rep((term.getSize())))
 term.at(okx, oky)
 ok()
 
-assert(io.open("/startup.lua", "w"))
+assert(io.open("/unbios-rc.lua", "w"))
   :write(dl(
    "https://raw.githubusercontent.com/ocawesome101/recrafted/primary/unbios.lua"
   )):close()
