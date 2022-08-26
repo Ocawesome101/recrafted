@@ -9,21 +9,24 @@ local threads = {}
 
 local id = 0
 local current = 0
-local foreground = {}
+local foreground = 0
 
-function threadapi.add(func, name)
+function threadapi.add(func, name, group)
   rc.expect(1, func, "function")
   rc.expect(2, name, "string", "nil")
+  rc.expect(3, group, "number", "nil")
 
   local cur = threads[current] or {
     dir = "/",
     vars = {},
-    term = (rc.term.current or rc.term.native)()
+    term = (rc.term.current or rc.term.native)(),
+    group = 0,
   }
 
   threads[id+1] = {coro = coroutine.create(func),
     name = name or tostring(func), term = cur.term,
-    dir = cur.dir, vars = setmetatable({}, {__index = cur.vars})}
+    dir = cur.dir, vars = setmetatable({}, {__index = cur.vars}),
+    group = group or cur.group}
   id = id + 1
 
   return id
@@ -82,35 +85,31 @@ function threadapi.remove(tid)
   return true
 end
 
--- set the "foreground" process (the one that gets events)
-function threadapi.pushForeground(tid)
-  rc.expect(1, tid, "number", "nil")
-  tid = tid or current
-  if not threads[tid] then return false end
-  foreground[#foreground+1] = tid
-  return true
-end
-
-function threadapi.switchForeground(tid)
-  rc.expect(1, tid, "number", "nil")
-  tid = tid or current
-  if not threads[tid] then return false end
-  foreground[#foreground] = tid
-  return true
-end
-
-function threadapi.getForeground()
-  return foreground[#foreground]
-end
-
 function threadapi.id()
   return current
+end
+
+function threadapi.group()
+  return threads[current].group
+end
+
+-- TODO: currently just returns the highest PID of a group
+function threadapi.groupForeground(gid)
+  rc.expect(1, gid, "number", "nil")
+  gid = gid or (threads[current] or {}).group
+  local highest = 0
+
+  for tid, thread in pairs(threads) do
+    if thread.group == gid then highest = math.max(highest, tid) end
+  end
+
+  return highest
 end
 
 function threadapi.info()
   local running = {}
   for i, thread in pairs(threads) do
-    running[#running+1] = {id = i, name = thread.name}
+    running[#running+1] = {id = i, name = thread.name, group = thread.group}
   end
   table.sort(running, function(a,b) return a.id < b.id end)
   return running
@@ -119,6 +118,23 @@ end
 function threadapi.exists(_id)
   rc.expect(1, id, "number")
   return not not threads[_id]
+end
+
+function threadapi.setFocus(group)
+  rc.expect(1, group, "number")
+
+  for _, thread in pairs(threads) do
+    if thread.group == group or group == 0 then
+      foreground = group
+      return true
+    end
+  end
+
+  return nil, "bad group"
+end
+
+function threadapi.getFocus()
+  return foreground
 end
 
 local yield = coroutine.yield
@@ -150,10 +166,6 @@ function threadapi.start()
         threads[_id] = nil
 
       end
-    end
-
-    while #foreground > 0 and not threads[foreground[#foreground]] do
-      foreground[#foreground] = nil
     end
   end
 

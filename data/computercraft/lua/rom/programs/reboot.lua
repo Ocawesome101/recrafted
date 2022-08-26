@@ -4,6 +4,6 @@ local colors = require("colors")
 term.setTextColor(colors.yellow)
 print("Restarting")
 
-os.sleep(1)
+if (...) ~= "now" then os.sleep(1) end
 
 os.reboot()

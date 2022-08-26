@@ -29,10 +29,6 @@ local function redraw()
   for i=1, #tabs, 1 do
     local tab = tabs[i]
     tab.id = i
-    while #tab.foreground > 0 and not thread.exists(
-        tab.foreground[#tab.foreground]) do
-      tab.foreground[#tab.foreground] = nil
-    end
   end
 
   while focused > 1 and not tabs[focused] do
@@ -59,7 +55,6 @@ local function redraw()
     for _, tab in ipairs(tabs) do
       if tab.id == focused then
         tab.term.setVisible(true)
-        api.switchForeground(tab.foreground[#tab.foreground])
       else
         tab.term.setVisible(false)
       end
@@ -75,6 +70,7 @@ end
 local function switch(id)
   if tabs[focused] then
     tabs[focused].term.setVisible(false)
+    thread.setFocus(tabs[focused].gid)
   end
   focused = id
   tabs[id].term.setVisible(true)
@@ -104,43 +100,6 @@ end
 
 function api.getCurrent()
   return current
-end
-
--- programs should use these, NOT the `thread` functions, for tab-specific
--- foregrounding to behave correctly
-function api.getForeground()
-  if #tabs > 0 then
-    local cur = tabs[current]
-    return cur.foreground[#cur.foreground]
-  else
-    return thread.getForeground()
-  end
-end
-
-function api.pushForeground(pid)
-  expect(1, pid, "number")
-  if not thread.exists(pid) then return end
-  if #tabs > 0 then
-    local cur = tabs[current]
-    cur.foreground[#cur.foreground+1] = pid
-    if current == focused then thread.switchForeground(pid) end
-    return true
-  else
-    return thread.pushForeground(pid)
-  end
-end
-
-function api.switchForeground(pid)
-  expect(1, pid, "number")
-  if not thread.exists(pid) then return end
-  if #tabs > 0 then
-    local cur = tabs[current]
-    cur.foreground[#cur.foreground] = pid
-    if current == focused then thread.switchForeground(pid) end
-    return true
-  else
-    return thread.pushForeground(pid)
-  end
 end
 
 local key_events = {
@@ -221,7 +180,7 @@ function api.launch(env, path, ...)
 
   local yield, add_thread
 
-  add_thread = function(func, name)
+  add_thread = function(func, name, group)
     return raw_addthread(function()
       coroutine.yield = yield
       thread.add = add_thread
@@ -229,7 +188,7 @@ function api.launch(env, path, ...)
       current = tab.id
 
       func()
-    end, name)
+    end, name, group)
   end
 
   yield = function (...)
@@ -282,15 +241,15 @@ function api.launch(env, path, ...)
   local tabid = #tabs + 1
   tab = {
     title = fs.getName(path),
-    term = window.create(currentTerm, 1, tabid > 2 and 2 or 1,
+    term = window.create(currentTerm, 1, tabid > 1 and 2 or 1,
       w, h - (tabid > 2 and 1 or 0), false),
-    pid = raw_addthread(exec, path),
+    pid = raw_addthread(exec, path, tabid),
     interact = false,
     foreground = {},
-    id = tabid
+    gid = tabid,
+    id = tabid,
   }
 
-  tab.foreground[1] = tab.pid
   tabs[tabid] = tab
 
   return tabid
