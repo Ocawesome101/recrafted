@@ -1,5 +1,17 @@
 -- Recrafted v1.1
 
+local fs = rawget(_G, "fs")
+if fs.exists("/.start_rc.lua") then
+  local handle = assert(fs.open("/.start_rc.lua", "r"))
+  local data = handle.readAll()
+  handle.close()
+
+  local _sd = rawget(os, "shutdown")
+  assert(load(data, "=start_rc", "t", _G))()
+  _sd()
+  while true do coroutine.yield() end
+end
+
 _G._RC_ROM_DIR = _RC_ROM_DIR or "/rom"
 
 local function pull(tab, key)
@@ -135,7 +147,6 @@ if _VERSION == "Lua 5.1" then
   end
 end
 
-local fs = rawget(_G, "fs")
 local startup = _RC_ROM_DIR .. "/startup"
 local files = fs.list(startup)
 table.sort(files)
