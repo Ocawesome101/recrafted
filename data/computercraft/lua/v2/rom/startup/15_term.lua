@@ -4,13 +4,13 @@
 local rc = ...
 
 -- we need a couple of these
-local thread = require("rc.thread")
 local colors = require("colors")
 local native = require("term")
 local expect = require("cc.expect").expect
 
 local term = {}
 package.loaded.term = term
+local thread = require("rc.thread")
 
 local valid = {
   write = true,
@@ -206,7 +206,7 @@ function term.read(replace, history, complete, default)
   while true do
     full_redraw()
     -- get input
-    local evt, id = os.pullEvent()
+    local evt, id = rc.pullEvent()
 
     if evt == "char" then
       dirty = true

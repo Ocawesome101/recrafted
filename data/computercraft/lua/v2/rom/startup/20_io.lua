@@ -1,4 +1,4 @@
-_G.io = require("io")
+_G.io = require("rc.io")
 
 function _G.print(...)
   local args = table.pack(...)

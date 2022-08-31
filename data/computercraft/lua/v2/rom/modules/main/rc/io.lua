@@ -3,6 +3,7 @@
 local expect = require("cc.expect").expect
 local thread = require("rc.thread")
 local colors = require("colors")
+local term = require("term")
 local fs = require("fs")
 local rc = require("rc")
 
@@ -21,6 +22,8 @@ function _file:read(...)
   if not (self.handle.read and pcall(self.handle.read, 0)) then
     return nil, "bad file descriptor"
   end
+
+  if self.handle.flush then self.handle.flush() end
 
   for i=1, args.n, 1 do
     local format = args[i]

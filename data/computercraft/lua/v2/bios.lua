@@ -11,6 +11,9 @@ end
 -- this is overwritten further down but `load` needs it
 local expect = function(_, _, _, _) end
 
+local shutdown = pull(os, "shutdown")
+local reboot = pull(os, "reboot")
+
 -- `os` extras go in here now.
 local rc = {
   _NAME = "Recrafted",
@@ -24,8 +27,6 @@ local rc = {
   cancelTimer = pull(os, "cancelTimer"),
   setAlarm    = pull(os, "setAlarm"),
   cancelAlarm = pull(os, "cancelAlarm"),
-  shutdown    = pull(os, "shutdown"),
-  reboot      = pull(os, "reboot"),
   getComputerID     = pull(os, "getComputerID"),
   computerID        = pull(os, "computerID"),
   getComputerLabel  = pull(os, "getComputerLabel"),
@@ -36,7 +37,57 @@ local rc = {
   epoch       = pull(os, "epoch"),
 }
 
--- Lua 5.1?  More like Lua Bad.Version amirite?
+-- and a few more
+rc.pushEvent = rc.queueEvent
+
+function rc.shutdown()
+  shutdown()
+  while true do coroutine.yield() end
+end
+
+function rc.reboot()
+  reboot()
+  while true do coroutine.yield() end
+end
+
+function rc.pullEventRaw(filter)
+  expect(1, filter, "string", "nil")
+
+  local sig
+  repeat
+    sig = table.pack(coroutine.yield())
+  until (not filter) or (sig[1] == filter)
+
+  return table.unpack(sig, 1, sig.n)
+end
+
+function rc.pullEvent(filter)
+  expect(1, filter, "string", "nil")
+
+  local sig
+  repeat
+    sig = table.pack(coroutine.yield())
+    if sig[1] == "terminate" then
+      error("terminated", 0)
+    end
+  until (not filter) or (sig[1] == filter)
+
+  return table.unpack(sig, 1, sig.n)
+end
+
+function rc.sleep(time, no_term)
+  local id = rc.startTimer(time)
+  repeat
+    local _, tid = (no_term and rc.pullEventRaw or rc.pullEvent)("timer")
+  until tid == id
+end
+
+function rc.version()
+  return string.format("Recrafted %d.%d.%d",
+    rc._VERSION.major, rc._VERSION.minor, rc._VERSION.patch)
+end
+
+-- Lua 5.1?  meh
 if _VERSION == "Lua 5.1" then
   local old_load = load
 
@@ -101,6 +152,10 @@ function _G.loadfile(file)
   return load(data, "="..file, "t", _G)
 end
 
+function _G.dofile(file)
+  return assert(loadfile(file))()
+end
+
 for i=1, #files, 1 do
   local file = startup .. "/" .. files[i]
   assert(loadfile(file))(rc)
@@ -108,4 +163,7 @@ end
 
 expect = require("cc.expect").expect
 
-require("rc.thread").start()
+local thread = require("rc.thread")
+
+rc.pushEvent("init")
+thread.start()
