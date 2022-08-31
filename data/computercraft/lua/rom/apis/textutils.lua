@@ -314,7 +314,7 @@ function tu.complete(text, env)
   expect(1, text, "string")
   env = expect(2, env, "table", "nil") or _G
 
-  local last_exp = text:match("[^%(%)%%%+%-%*/%[%]%{%}; ]*$")
+  local last_exp = text:match("[^%(%)%%%+%-%*/%[%]%{%}; =]*$")
 
   local results = {}
 
