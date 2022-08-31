@@ -32,7 +32,7 @@ function shell.init()
   copyIfPresent("aliases", vars)
   completions[vars.parentShell or 0] = completions[vars.parentShell or 0] or {}
 
-  vars.path = vars.path or ".:/recrafted/programs"
+  vars.path = vars.path or ".:/rc/programs"
 end
 
 local builtins = {

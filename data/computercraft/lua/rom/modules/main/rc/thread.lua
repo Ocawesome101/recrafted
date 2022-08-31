@@ -273,7 +273,7 @@ function api.start()
   api.start = nil
 
   native = term.native()
-  api.launchTab("/recrafted/programs/shell.lua", "shell")
+  api.launchTab("/rc/programs/shell.lua", "shell")
 
   rc.pushEvent("init")
 

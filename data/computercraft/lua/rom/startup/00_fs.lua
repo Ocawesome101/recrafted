@@ -22,7 +22,7 @@ local function expect(...)
 end
 
 -- path resolution:
--- if the path begins with /recrafted, then redirect to wherever that actually
+-- if the path begins with /rc, then redirect to wherever that actually
 -- is; otherwise, resolve the path based on the current program's working
 -- directory
 -- this is to allow .OS to run from anywhere
@@ -38,7 +38,7 @@ local function resolve(path)
   path = fs.combine(root, path)
 
   local segments = fs.split(path)
-  if segments[1] == "recrafted" then
+  if segments[1] == "rc" then
     return fs.combine(_RC_ROM_DIR, table.concat(segments, "/", 2, #segments))
   else
     return path
@@ -72,9 +72,9 @@ function fs.list(path)
   local _, files = pcall(list, path)
   if not _ then return nil, files end
   if path == "/" then
-    -- inject /recrafted into the root listing
-    if not exists("/recrafted") then
-      files[#files+1] = "recrafted"
+    -- inject /rc into the root listing
+    if not exists("/rc") then
+      files[#files+1] = "rc"
     end
   end
   return files

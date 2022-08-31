@@ -14,7 +14,7 @@ elseif mcver <= 12 or _HOST:match("CraftOS%-PC") then
   kmap = "lwjgl2"
 end
 
-local base = dofile("/recrafted/keymaps/"..kmap..".lua")
+local base = dofile("/rc/keymaps/"..kmap..".lua")
 local lib = {}
 
 -- reverse-index it!

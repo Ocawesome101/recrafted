@@ -1,6 +1,6 @@
 -- Recrafted installer
 
-local DEFAULT_ROM_DIR = "/recrafted"
+local DEFAULT_ROM_DIR = "/rc"
 print("Downloading required libraries...")
 
 local function dl(f)

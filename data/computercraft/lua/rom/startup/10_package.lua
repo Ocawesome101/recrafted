@@ -6,7 +6,7 @@ _G.package = {}
 
 package.config = "/\n;\n?\n!\n-"
 package.cpath = ""
-package.path = "/recrafted/apis/?.lua;/recrafted/modules/main/?.lua;./lib/?.lua;./lib/?/init.lua;./?.lua;./?/init.lua"
+package.path = "/rc/apis/?.lua;/rc/modules/main/?.lua;./lib/?.lua;./lib/?/init.lua;./?.lua;./?/init.lua"
 
 local function rm(api)
   local tab = _G[api]
@@ -76,7 +76,7 @@ package.searchers = {
 
 local fs = package.loaded.fs
 -- require isn't here yet
-local expect = loadfile("/recrafted/modules/main/cc/expect.lua")()
+local expect = loadfile("/rc/modules/main/cc/expect.lua")()
 package.loaded["cc.expect"] = expect
 
 function package.searchpath(name, path, sep, rep)
