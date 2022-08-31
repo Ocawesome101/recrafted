@@ -37,6 +37,20 @@ function c.program(text, add_space)
   expect(1, text, "string")
   expect(2, add_space, "boolean", "table", "nil")
   local progs = shell.programs()
+  local files = c.file(text)
+
+  local seen = {}
+  for i=1, #files, 1 do
+    local full = text..files[i]
+    if fs.isDir(full) and full:sub(-1) ~= "/" then
+      full = full .. "/"
+    end
+    if not seen[full] then
+      progs[#progs+1] = full
+    end
+    seen[full] = true
+  end
+
   table.sort(progs, function(a,b) return #a < #b end)
 
   return completion.choice(text, progs, add_space)

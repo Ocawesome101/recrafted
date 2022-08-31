@@ -32,7 +32,7 @@ function shell.init()
   copyIfPresent("aliases", vars)
   completions[vars.parentShell or 0] = completions[vars.parentShell or 0] or {}
 
-  vars.path = vars.path or "/recrafted/programs"
+  vars.path = vars.path or ".:/recrafted/programs"
 end
 
 local builtins = {
@@ -205,9 +205,13 @@ function shell.resolveProgram(path)
 
   for search in thread.vars().path:gmatch("[^:]+") do
     if search == "." then search = shell.dir() end
-    local try = fs.combine(search, path .. ".lua")
-    if fs.exists(try) and not fs.isDir(try) then
-      return try
+    local try1 = fs.combine(search, path)
+    local try2 = fs.combine(search, path .. ".lua")
+    if fs.exists(try1) and not fs.isDir(try1) then
+      return try1
+    end
+    if fs.exists(try2) and not fs.isDir(try2) then
+      return try2
     end
   end
 
@@ -259,7 +263,15 @@ function shell.complete(line)
     end
   else
     if #words == 1 then
-      return shell.completeProgram(words[1])
+      local opt = shell.completeProgram(words[1])
+
+      for i=1, #opt, 1 do
+        if shell.resolveProgram(words[1] .. opt[i]) then
+          opt[i] = opt[i] .. " "
+        end
+      end
+
+      return opt
 
     else
       local complete = completions[thread.vars().parentShell or 0][words[1]]
@@ -274,7 +286,7 @@ end
 
 function shell.completeProgram(line)
   expect(1, line, "string")
-  return require("cc.shell.completion").program(line, true)
+  return require("cc.shell.completion").program(line)
 end
 
 function shell.setCompletionFunction(program, complete)
