@@ -13,19 +13,27 @@ textutils.coloredPrint(colors.yellow, rc.version(), colors.white)
 thread.vars().parentShell = thread.id()
 shell.init()
 
-local id = rc.startTimer(0)
+if not shell.__has_run_startup then
+  shell.__has_run_startup = true
+  if fs.exists("/startup.lua") then
+    local ok, err = pcall(dofile, "/startup.lua")
+    if not ok and err then
+      io.stderr:write(err, "\n")
+    end
+  end
 
-repeat
-  local e, i = rc.pullEvent()
-  if e == "init" then
-    if fs.exists("/startup.lua") then
-      local ok, err = pcall(dofile, "/startup.lua")
+  if fs.exists("/startup") and fs.isDir("/startup") then
+    local files = fs.list("/startup/")
+    table.sort(files)
+
+    for f=1, #files, 1 do
+      local ok, err = pcall(dofile, "/startup/"..files[f])
       if not ok and err then
         io.stderr:write(err, "\n")
       end
     end
   end
-until i == id
+end
 
 local aliases = {
   background = "bg",
@@ -61,7 +69,7 @@ while true do
   if #text > 0 then
     history[#history+1] = text
     local ok, err = shell.run(text)
-    if not ok then
+    if not ok and err then
       io.stderr:write(err, "\n")
     end
   end

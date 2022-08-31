@@ -165,5 +165,4 @@ expect = require("cc.expect").expect
 
 local thread = require("rc.thread")
 
-rc.pushEvent("init")
 thread.start()

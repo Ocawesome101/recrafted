@@ -275,6 +275,8 @@ function api.start()
   native = term.native()
   api.launchTab("/recrafted/programs/shell.lua", "shell")
 
+  rc.pushEvent("init")
+
   while #tabs > 0 and next(threads) do
     cleanTabs()
     redraw()
