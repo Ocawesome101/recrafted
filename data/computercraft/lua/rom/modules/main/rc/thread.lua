@@ -273,7 +273,7 @@ function api.start()
   api.start = nil
 
   native = term.native()
-  api.launchTab("/rom/programs/shell.lua", "shell")
+  api.launchTab("/recrafted/programs/shell.lua", "shell")
 
   while #tabs > 0 and next(threads) do
     cleanTabs()
