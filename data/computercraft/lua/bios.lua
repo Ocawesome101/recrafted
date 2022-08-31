@@ -87,22 +87,6 @@ function rc.version()
     rc._VERSION.major, rc._VERSION.minor, rc._VERSION.patch)
 end
 
--- fix (some) missing os.date formats in non-CCPC environments
-local old_date = os.date
-function os.date(format, time)
-  if format then expect(1, format, "string") end
-  if time then expect(2, time, "number") end
-
-  if not format then return old_date() end
-
-  local ts = old_date(format:sub(1,1) == "!" and "!*t" or "*t", time)
-
-  format = format:gsub("%%l",
-    tostring(ts.hour > 12 and ts.hour - 12 or ts.hour))
-
-  return old_date(format, time)
-end
-
 -- Lua 5.1?  meh
 if _VERSION == "Lua 5.1" then
   local old_load = load

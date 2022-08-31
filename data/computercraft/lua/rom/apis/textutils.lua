@@ -29,7 +29,7 @@ function tu.formatTime(time, _24h)
   expect(1, time, "number")
   expect(2, _24h, "boolean", "nil")
 
-  local fmt = _24h and "!%H:%M" or "!%l:%M %p"
+  local fmt = _24h and "!%H:%M" or "!%I:%M %p"
 
   return (os.date(fmt, time * 3600):gsub("^ ", ""))
 end
