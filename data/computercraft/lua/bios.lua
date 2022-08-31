@@ -11,7 +11,7 @@ if fs.exists("/.start_rc.lua") and not (...) then
   handle.close()
 
   local _sd = rawget(os, "shutdown")
-  assert((loadstring or load)(data, "=start_rc", "t", _G))(true)
+  assert((loadstring or load)(data, "=start_rc"))(true)
   _sd()
   while true do coroutine.yield() end
 end

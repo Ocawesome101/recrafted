@@ -50,8 +50,11 @@ term.setCursorBlink(true)
 
 repeat local x = coroutine.yield() until x == "char"
 
-fs.remove(_RC_ROM_DIR)
-fs.remove("/.start_rc.lua")
+pcall(fs.delete, _RC_ROM_DIR)
+pcall(fs.delete, "/.start_rc.lua")
+
+os.reboot()
+while true do coroutine.yield() end
 
 ]]
 
@@ -64,14 +67,15 @@ local handle = fs.open("/.start_rc.lua", "w")
 handle.write(start_rc)
 handle.close()
 
+assert(pcall(function()
 local w, h = term.getSize()
 
 local function dl(f)
-  local hand, err = http.request(f, nil, true)
+  local hand, err = http.request(f, nil, nil, true)
   local evt
   repeat
     evt = table.pack(coroutine.yield())
-  until evt[1] == "http_response" or evt[1] == "http_failure"
+  until evt[1] == "http_success" or evt[1] == "http_failure"
 
   if evt[1] == "http_failure" then
     term.at(1, h).write(evt[3])
@@ -81,32 +85,42 @@ local function dl(f)
 
     os.reboot()
     while true do coroutine.yield() end
+
+  else
+    hand = evt[3]
+
+    local data = hand.readAll()
+    hand.close()
+
+    return data
   end
 end
 
 local function ghload(f, c)
-  return assert(load(dl("https://raw.githubusercontent.com/"..f),
-    "=ghload("..(c or f)..")", "t", _G))()
+  return assert(loadstring(dl("https://raw.githubusercontent.com/"..f),
+    "=ghload("..(c or f)..")"))()
 end
 
 local json = ghload("rxi/json.lua/master/json.lua", "json")
 
 local function header()
   term.setTextColor(0x10)
+  at(1, 1).clearLine()
   at(1, 1).write("Recrafted Updater (Stage 2)")
+  at(1, 2).clearLine()
   at(1, 2).write("===========================")
   term.setTextColor(0x1)
 end
 
 local y = 1
 local function write(text)
-  at(1, y+2).clearLine()
-  term.write(text)
-  y = y + 1
   if y > h-3 then
     term.scroll(1)
     header()
+  else
+    y = y + 1
   end
+  at(1, y+2).write(text)
 end
 
 header()
@@ -132,7 +146,7 @@ write("Creating directories...")
 for i=#to_dl, 1, -1 do
   local v = to_dl[i]
   if v.type == "tree" then
-    fs.makeDir(fs.combine(v.real_path))     ■■ Undefined global `fs`.         
+    fs.makeDir(fs.combine(v.real_path))
     table.remove(to_dl, i)
   end
 end
@@ -140,18 +154,19 @@ end
 write("Downloading files...")
 
 local function progress(a, b)
+  at(1, 3).clearLine()
   term.setBackgroundColor(0x1)
-  at(1, h).write((" "):rep(math.ceil((w-2) * (a/b))))
+  at(1, 3).write((" "):rep(math.ceil((w-2) * (a/b))))
   term.setBackgroundColor(0x8000)
 end
 
 for i=1, #to_dl do
   local v = to_dl[i]
-  if v.type == "blob" then
-    progress(i, #to_dl)
+  if v.type == "blob" and v.real_path ~= "unbios.lua" then
     local data = dl("https://raw.githubusercontent.com/ocawesome101/recrafted/primary/data/computercraft/lua/"..v.path)
     write(v.real_path)
-    if v.real_path:match("bios%.lua") then
+    progress(i, #to_dl)
+    if v.real_path == "bios.lua" then
       v.real_path = "/.start_rc.lua"
     end
     local handle = fs.open(v.real_path, "w")
@@ -162,3 +177,5 @@ end
 
 os.reboot()
 while true do coroutine.yield() end
+
+end))
