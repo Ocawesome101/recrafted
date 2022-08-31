@@ -50,7 +50,7 @@ local function pagedWrite(text, begin)
       term.setTextColor(colors.white)
       rc.write("Press any key to continue")
       term.setTextColor(old)
-      os.pullEvent("char")
+      rc.pullEvent("char")
       local _, y = term.getCursorPos()
       term.at(1, y).clearLine()
       total = 0
@@ -286,8 +286,79 @@ function tu.urlEncode(str)
   return str
 end
 
-function tu.complete()
-  error("not yet implemented")
+local function split(text)
+  local dots = {""}
+
+  for c in text:gmatch(".") do
+    if c == "." or c == ":" then
+      --dots[#dots+1] = c
+      dots[#dots+1] = ""
+    else
+      dots[#dots] = dots[#dots] .. c
+    end
+  end
+
+  return dots
+end
+
+local function getSuffix(thing, default)
+  if type(thing) == "table" then
+    return "."
+  elseif type(thing) == "function" then
+    return "("
+  end
+  return default
+end
+
+function tu.complete(text, env)
+  expect(1, text, "string")
+  env = expect(2, env, "table", "nil") or _G
+
+  local last_exp = text:match("[^%(%)%%%+%-%*/%[%]%{%}; ]*$")
+
+  local results = {}
+
+  if last_exp and #last_exp > 0 then
+    local search = {env}
+    local mt = getmetatable(env)
+    if mt and type(mt.__index) == "table" then
+      search[#search+1] = mt.__index
+    end
+
+    for s=1, #search, 1 do
+      local dots = split(last_exp)
+      local current = search[s]
+
+      local final = 0
+      for i=1, #dots, 1 do
+        if current[dots[i]] then
+          current = current[dots[i]]
+          final = i
+        else
+          break
+        end
+      end
+
+      for _=1, final, 1 do table.remove(dots, 1) end
+
+      if #dots == 0 then
+        results[#results+1] = getSuffix(current)
+      end
+
+      if #dots ~= 1 or type(current) ~= "table" then return results end
+
+      local find = dots[1]
+      for key, val in pairs(current) do
+        key = key .. getSuffix(val, "")
+
+        if key:sub(1, #find) == find then
+          results[#results+1] = key:sub(#find + 1)
+        end
+      end
+    end
+  end
+
+  return results
 end
 
 function tu.coloredWrite(...)

@@ -1,10 +1,12 @@
 -- lua REPL
 
 local term = require("term")
+local copy = require("rc.copy").copy
 local colors = require("colors")
 local pretty = require("cc.pretty")
+local textutils = require("textutils")
 
-local env = setmetatable({}, {__index=_G})
+local env = copy(_G, package.loaded)
 
 local run = true
 function env.exit() run = false end
@@ -17,7 +19,9 @@ local history = {}
 while run do
   term.setTextColor(colors.white)
   io.write("lua> ")
-  local data = term.read(nil, history)
+  local data = term.read(nil, history, function(text)
+    return textutils.complete(text, env)
+  end)
   if #data > 0 then
     history[#history+1] = data
   end
