@@ -17,7 +17,7 @@ end
 -- set up package.loaded for Recrafted libs
 package.loaded.rc = {
   expect = require("cc.expect").expect,
-  write = write, sleep = sleep, term = term,
+  write = write, sleep = sleep
 }
 
 package.loaded.term = term
@@ -35,7 +35,7 @@ local function ghload(f, c)
 end
 
 local json = ghload("rxi/json.lua/master/json.lua", "ghload(json)")
-package.loaded.json = json
+package.loaded["rc.json"] = json
 
 local function rcload(f)
   return ghload(
