@@ -1,18 +1,20 @@
--- Recrafted v1.1
+-- Recrafted 1.1.0
 
 local fs = rawget(_G, "fs")
-if fs.exists("/.start_rc.lua") then
+
+_G._RC_ROM_DIR = _RC_ROM_DIR or "/rom"
+
+if fs.exists("/.start_rc.lua") and not (...) then
+  _G._RC_USED_START = true
   local handle = assert(fs.open("/.start_rc.lua", "r"))
   local data = handle.readAll()
   handle.close()
 
   local _sd = rawget(os, "shutdown")
-  assert(load(data, "=start_rc", "t", _G))()
+  assert(load(data, "=start_rc", "t", _G))(true)
   _sd()
   while true do coroutine.yield() end
 end
-
-_G._RC_ROM_DIR = _RC_ROM_DIR or "/rom"
 
 local function pull(tab, key)
   local func = tab[key]

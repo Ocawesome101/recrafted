@@ -31,6 +31,8 @@
 -- native http.removeListener(port:number) (CraftOS-PC only)
 --    remove the listener from that port
 
+local rc = ...
+
 if not package.loaded.http then
   return
 end
@@ -46,7 +48,7 @@ local expect = require("cc.expect").expect
 
 local function listenForResponse(url)
   while true do
-    local sig, a, b, c = os.pullEvent()
+    local sig, a, b, c = rc.pullEvent()
     if sig == "http_success" and a == url then
       return b
     elseif sig == "http_failure" and a == url then
