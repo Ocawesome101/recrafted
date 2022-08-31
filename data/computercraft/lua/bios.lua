@@ -1,8 +1,8 @@
--- Recrafted 1.1.0
+-- Recrafted 1.2.0
 
 local fs = rawget(_G, "fs")
 
-_G._RC_ROM_DIR = _RC_ROM_DIR or "/rom"
+_G._RC_ROM_DIR = _RC_ROM_DIR or (...) and fs.exists("/rc") and "/rc" or "/rom"
 
 if fs.exists("/.start_rc.lua") and not (...) then
   _G._RC_USED_START = true
@@ -33,7 +33,7 @@ local rc = {
   _NAME = "Recrafted",
   _VERSION = {
     major = 1,
-    minor = 1,
+    minor = 2,
     patch = 0
   },
   queueEvent  = pull(os, "queueEvent"),
