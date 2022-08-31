@@ -5,6 +5,7 @@ local term = rawget(_G, "term")
 local http = rawget(_G, "http")
 
 _G._RC_ROM_DIR = _RC_ROM_DIR or "/rc"
+if _RC_ROM_DIR == "/rom" then _RC_ROM_DIR = "/rc" end
 
 -- fail-safe
 local start_rc = [[
