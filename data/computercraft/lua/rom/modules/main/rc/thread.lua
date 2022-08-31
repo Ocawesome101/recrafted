@@ -13,11 +13,44 @@ local getfenv = rc.lua51.getfenv
 
 local tabs = { {} }
 local threads = {}
-local current
+local current, native
 
 local focused = 1
 
 local api = {}
+
+function api.launchTab(x, name)
+  expect(1, x, "string", "function")
+  name = expect(2, name, "string", "nil") or tostring(x)
+
+  local newTab = {
+    term = window.create(native, 1, 1, native.getSize()),
+    id = #tabs + 1
+  }
+
+  tabs[newTab.id] = newTab
+
+  local _f = focused
+  focused = newTab.id
+  local id = (type(x) == "string" and api.load or api.spawn)(x, name)
+  focused = _f
+
+  return newTab.id, id
+end
+
+function api.setFocusedTab(f)
+  expect(1, f, "number")
+  if tabs[focused] then focused = f end
+  return not not tabs[f]
+end
+
+function api.getFocusedTab()
+  return focused
+end
+
+function api.getCurrentTab()
+  return current.tab.id
+end
 
 function api.load(file, name)
   expect(1, file, "string")
@@ -125,7 +158,6 @@ function api.remove(id)
   threads[id or current.id] = nil
 end
 
-local native
 local w, h
 local function redraw()
   w, h = native.getSize()
@@ -233,21 +265,15 @@ local function cleanTabs()
   for i=1, #tabs, 1 do
     tabs[i].id = i
   end
+
+  focused = math.max(1, math.min(#tabs, focused))
 end
 
 function api.start()
   api.start = nil
 
   native = term.native()
-  tabs[1] = { term = window.create(native, 1, 1, native.getSize()), id=1 }
-  tabs[2] = { term = window.create(native, 1, 1, native.getSize()), id=2 }
-  tabs[3] = { term = window.create(native, 1, 1, native.getSize()), id=3 }
-
-  for i=1, #tabs, 1 do
-    focused = i
-    api.load("/rom/programs/shell.lua", "shell")
-  end
-  focused = 1
+  api.launchTab("/rom/programs/shell.lua", "shell")
 
   while #tabs > 0 and next(threads) do
     cleanTabs()

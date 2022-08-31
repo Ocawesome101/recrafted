@@ -7,11 +7,13 @@ if #args == 0 then
 end
 
 local shell = require("shell")
-local multishell = require("multishell")
+local thread = require("rc.thread")
 
 local path, err = shell.resolveProgram(args[1])
 if not path then
   error(err, 0)
 end
 
-multishell.setFocus(multishell.launch(path, table.unpack(args, 2)))
+thread.setFocus((thread.launchTab(function()
+  shell.exec(path, table.unpack(args, 2))
+end, args[1])))

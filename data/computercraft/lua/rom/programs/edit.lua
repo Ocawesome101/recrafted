@@ -2,6 +2,7 @@
 
 local args = {...}
 
+local rc = require("rc")
 local keys = require("keys")
 local term = require("term")
 local shell = require("shell")
@@ -82,7 +83,7 @@ local function save()
 end
 
 local function processMenuInput()
-  local event, id = os.pullEvent()
+  local event, id = rc.pullEvent()
 
   if event == "char" then
     if id:lower() == "e" then
@@ -113,7 +114,7 @@ local function processMenuInput()
 end
 
 local function processInput()
-  local event, id = os.pullEvent()
+  local event, id = rc.pullEvent()
 
   local _, h = term.getSize()
 

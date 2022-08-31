@@ -1,3 +1,1 @@
-local term = require("term")
-term.clear()
-term.setCursorPos(1,1)
+require("term").at(1,1).clear()

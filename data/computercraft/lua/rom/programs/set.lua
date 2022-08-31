@@ -1,6 +1,5 @@
 -- 'set' program
 
-local term = require("term")
 local colors = require("colors")
 local settings = require("settings")
 local textutils = require("textutils")

@@ -60,8 +60,21 @@ term.at(1,1).clear()
 tu.coloredPrint(colors.yellow,
   "Recrafted Installer 1.0\n=======================")
 
+local ROM_DIR
+tu.coloredPrint("Enter installation directory ", colors.yellow, "[",
+  colors.lightBlue, "/rc", colors.yellow, "]")
+tu.coloredWrite(colors.yellow, "> ")
+
+ROM_DIR = read()
+if #ROM_DIR == 0 then ROM_DIR = "/rc" end
+
+ROM_DIR = "/"..shell.resolve(ROM_DIR)
+
+settings.set("recrafted.rom_dir", ROM_DIR)
+settings.save()
+
 tu.coloredPrint(colors.white, "Installing Recrafted to ", colors.lightBlue,
-  "/rc", colors.white)
+  ROM_DIR, colors.white)
 
 local function bullet(t)
   tu.coloredWrite(colors.red, "- ", colors.white, t)
@@ -85,7 +98,7 @@ local to_dl = {}
 for _, v in pairs(repodata.tree) do
   if v.path and v.path:sub(1,#look) == look then
     v.path = v.path:sub(#look+1)
-    v.real_path = v.path:gsub("^/?rom", "rc")
+    v.real_path = v.path:gsub("^/?rom", ROM_DIR)
     to_dl[#to_dl+1] = v
   end
 end
@@ -127,10 +140,18 @@ term.at(1, pby).write((" "):rep((term.getSize())))
 term.at(okx, oky)
 ok()
 
-assert(io.open("/unbios-rc.lua", "w"))
+assert(io.open(
+ fs.exists("/startup.lua") and "/unbios-rc.lua" or "/startup.lua", "w"))
   :write(dl(
    "https://raw.githubusercontent.com/ocawesome101/recrafted/primary/unbios.lua"
   )):close()
 
-settings.set("recrafted.rom_dir", "/rc")
-settings.save()
+tu.coloredPrint(colors.yellow, "Your computer will restart in 5 seconds.")
+local _, y = term.getCursorPos()
+
+for i=1, 5, 1 do
+  progress(y, i, 5)
+  os.sleep(1)
+end
+
+os.reboot()

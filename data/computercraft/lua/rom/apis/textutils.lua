@@ -2,14 +2,15 @@
 
 local rc = require("rc")
 local term = require("term")
-local json = require("json")
+local json = require("rc.json")
 local colors = require("colors")
+local expect = require("cc.expect").expect
 
 local tu = {}
 
 function tu.slowWrite(text, rate)
-  rc.expect(1, text, "string")
-  rc.expect(2, rate, "number", "nil")
+  expect(1, text, "string")
+  expect(2, rate, "number", "nil")
 
   local delay = 1/(rate or 20)
   for c in text:gmatch(".") do
@@ -19,14 +20,14 @@ function tu.slowWrite(text, rate)
 end
 
 function tu.slowPrint(text, rate)
-  rc.expect(1, text, "string")
-  rc.expect(2, rate, "number", "nil")
+  expect(1, text, "string")
+  expect(2, rate, "number", "nil")
   tu.slowWrite(text.."\n", rate)
 end
 
 function tu.formatTime(time, _24h)
-  rc.expect(1, time, "number")
-  rc.expect(2, _24h, "boolean", "nil")
+  expect(1, time, "number")
+  expect(2, _24h, "boolean", "nil")
 
   local fmt = _24h and "!%H:%M" or "!%l:%M %p"
 
@@ -34,7 +35,7 @@ function tu.formatTime(time, _24h)
 end
 
 local function pagedWrite(text, begin)
-  local _, h = rc.term.getSize()
+  local _, h = term.getSize()
 
   local realTotal = 0
   local total = begin or 0
@@ -60,7 +61,7 @@ local function pagedWrite(text, begin)
 end
 
 function tu.pagedPrint(text)
-  rc.expect(1, text, "string")
+  expect(1, text, "string")
   return pagedWrite(text .. "\n")
 end
 
@@ -100,14 +101,14 @@ end
 local function tabulate(paged, ...)
   local args = table.pack(...)
 
-  local w = rc.term.getSize()
+  local w = term.getSize()
   local max_len = 0
 
   local linear = {}
 
   for i=1, args.n, 1 do
     local argi = args[i]
-    rc.expect(i, argi, "table", "number")
+    expect(i, argi, "table", "number")
 
     if type(argi) == "table" then
       for n=1, #argi, 1 do
@@ -116,7 +117,7 @@ local function tabulate(paged, ...)
           local argin = argi[n]
 
           for j=1, #argin, 1 do
-            rc.expect(j, argin[j], "string", "number")
+            expect(j, argin[j], "string", "number")
             if type(argin[j]) == "string" then
               total_len = total_len + #argin[j]
             end
@@ -128,7 +129,7 @@ local function tabulate(paged, ...)
           linear[#linear+1] = argi[n]
 
         else
-          linear[#linear+1] = rc.expect(n, argi[n], "string")
+          linear[#linear+1] = expect(n, argi[n], "string")
           max_len = math.max(max_len, #argi[n] + 2)
         end
       end
@@ -157,7 +158,7 @@ local function tabulate(paged, ...)
         written = 0
       end
 
-      rc.term.setTextColor(lini)
+      term.setTextColor(lini)
 
     else
       local len = type(lini) == "table" and lini.total_len or #lini
@@ -243,14 +244,14 @@ local function serialize(t, _seen)
 end
 
 function tu.serialize(t, opts)
-  rc.expect(1, t, "table")
-  rc.expect(2, opts, "table", "nil")
+  expect(1, t, "table")
+  expect(2, opts, "table", "nil")
 
   return serialize(t, {})
 end
 
 function tu.unserialize(s)
-  rc.expect(1, s, "string")
+  expect(1, s, "string")
   local call = load("return " .. s, "=<unserialize>", "t", {})
   if call then return call() end
 end
@@ -259,7 +260,7 @@ tu.serialise = tu.serialize
 tu.unserialise = tu.unserialize
 
 function tu.serializeJSON(t, nbt)
-  rc.expect(1, t, "table")
+  expect(1, t, "table")
   if nbt then
     error("NBT mode is not yet supported")
   end
@@ -267,7 +268,7 @@ function tu.serializeJSON(t, nbt)
 end
 
 function tu.unserializeJSON(s)--s, options)
-  rc.expect(1, s, "string")
+  expect(1, s, "string")
   return json.decode(s)
 end
 
@@ -275,7 +276,7 @@ tu.serialiseJSON = tu.serializeJSON
 tu.unserialiseJSON = tu.unserializeJSON
 
 function tu.urlEncode(str)
-  rc.expect(1, str, "string")
+  expect(1, str, "string")
 
   -- TODO: possibly UTF-8 support?
   str = str:gsub("[^%w %-%_%.]", function(c)

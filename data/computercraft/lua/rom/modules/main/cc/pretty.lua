@@ -31,7 +31,7 @@ local _expect = require "cc.expect"
 local expect, field = _expect.expect, _expect.field
 
 local term = require("term")
-local type, getmetatable, setmetatable, colours, str_write, tostring = type, getmetatable, setmetatable, require("colours"), require("write"), tostring
+local type, getmetatable, setmetatable, colours, str_write, tostring = type, getmetatable, setmetatable, require("colours"), require("rc").write, tostring
 local debug_info, debug_local = debug.getinfo, debug.getlocal
 
 --- @{table.insert} alternative, but with the length stored inline.

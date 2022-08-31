@@ -1,8 +1,6 @@
 -- wget
 
-local platform = require("rc").platform
-
-if not platform.http then
+if not package.loaded.http then
   error("HTTP is not enabled in the ComputerCraft configuration", 0)
 end
 

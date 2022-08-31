@@ -1,13 +1,14 @@
 -- cc.strings
 
-local rc = require("rc")
+local term = require("term")
+local expect = require("cc.expect").expect
 local strings = {}
 
 function strings.wrap(text, width)
-  rc.expect(1, text, "string")
-  rc.expect(2, width, "number", "nil")
+  expect(1, text, "string")
+  expect(2, width, "number", "nil")
 
-  width = width or rc.term.getSize()
+  width = width or term.getSize()
 
   local whitespace = "[ \t\n\r]"
   local splitters = "[ %=%+]"
@@ -46,9 +47,9 @@ function strings.wrap(text, width)
 end
 
 function strings.ensure_width(line, width)
-  rc.expect(1, line, "string")
-  rc.expect(2, width, "number", "nil")
-  width = width or rc.term.getSize()
+  expect(1, line, "string")
+  expect(2, width, "number", "nil")
+  width = width or term.getSize()
 
   return (line .. (" "):rep(width - #line)):sub(1, width)
 end

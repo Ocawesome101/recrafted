@@ -1,3 +1,0 @@
-// changes from 1.0 to 1.1
-
-threads are now organized into tabs; input events are sent to a whole tab at once.

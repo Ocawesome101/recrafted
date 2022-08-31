@@ -5,10 +5,10 @@ local shell = {}
 local rc = require("rc")
 local fs = require("fs")
 local colors = require("colors")
-local thread = require("thread")
+local thread = require("rc.thread")
+local expect = require("cc.expect").expect
 local settings = require("settings")
 local textutils = require("textutils")
-local multishell = require("multishell")
 
 local function copyIfPresent(f, t)
   if t[f] then
@@ -24,8 +24,6 @@ local function copyIfPresent(f, t)
   end
 end
 
-shell.__has_run_startup = false
-
 local completions = {[0]={}}
 
 function shell.init()
@@ -34,8 +32,7 @@ function shell.init()
   copyIfPresent("aliases", vars)
   completions[vars.parentShell or 0] = completions[vars.parentShell or 0] or {}
 
-  vars.path = vars.path or string.format(
-    ".:%s/programs", rc._ROM_DIR)
+  vars.path = vars.path or "/recrafted/programs"
 end
 
 local builtins = {
@@ -112,13 +109,13 @@ local function execProgram(fork, command, ...)
   if fork then
     local args = table.pack(...)
     local result
-    local id = thread.add(function()
+    local id = thread.spawn(function()
       shell.init()
       result = table.pack(callCommand(command, ok,
         table.unpack(args, 1, args.n)))
     end, command)
 
-    repeat rc.sleep(0.05) until not thread.exists(id)
+    repeat rc.sleep(0.05, true) until not thread.exists(id)
 
     if result then
       return table.unpack(result, 1, result.n)
@@ -131,12 +128,12 @@ end
 
 -- execute a command, but do NOT fork
 function shell.exec(command, ...)
-  rc.expect(1, command, "string")
+  expect(1, command, "string")
   return execProgram(false, command, ...)
 end
 
 function shell.execute(command, ...)
-  rc.expect(1, command, "string")
+  expect(1, command, "string")
 
   if builtins[command] then
     local func = builtins[command]
@@ -171,7 +168,7 @@ function shell.dir()
 end
 
 function shell.setDir(dir)
-  rc.expect(1, dir, "string")
+  expect(1, dir, "string")
   return thread.setDir(shell.resolve(dir))
 end
 
@@ -180,12 +177,12 @@ function shell.path()
 end
 
 function shell.setPath(path)
-  rc.expect(1, path, "string")
+  expect(1, path, "string")
   thread.vars().path = path
 end
 
 function shell.resolve(path)
-  rc.expect(1, path, "string")
+  expect(1, path, "string")
 
   if path:sub(1,1) == "/" then
     return path
@@ -195,7 +192,7 @@ function shell.resolve(path)
 end
 
 function shell.resolveProgram(path)
-  rc.expect(1, path, "string")
+  expect(1, path, "string")
 
   local aliases = thread.vars().aliases
   if aliases[path] then
@@ -218,7 +215,7 @@ function shell.resolveProgram(path)
 end
 
 function shell.programs(hidden)
-  rc.expect(1, hidden, "boolean", "nil")
+  expect(1, hidden, "boolean", "nil")
 
   local programs = {}
 
@@ -245,7 +242,7 @@ function shell.programs(hidden)
 end
 
 function shell.complete(line)
-  rc.expect(1, line, "string")
+  expect(1, line, "string")
 
   local words = tokenize(line)
   local aliases = thread.vars().aliases or {}
@@ -276,13 +273,13 @@ function shell.complete(line)
 end
 
 function shell.completeProgram(line)
-  rc.expect(1, line, "string")
+  expect(1, line, "string")
   return require("cc.shell.completion").program(line, true)
 end
 
 function shell.setCompletionFunction(program, complete)
-  rc.expect(1, program, "string")
-  rc.expect(2, complete, "function")
+  expect(1, program, "string")
+  expect(2, complete, "function")
   completions[thread.vars().parentShell or 0][program] = complete
 end
 
@@ -295,14 +292,14 @@ function shell.getRunningProgram()
 end
 
 function shell.setAlias(command, program)
-  rc.expect(1, command, "string")
-  rc.expect(2, program, "string")
+  expect(1, command, "string")
+  expect(2, program, "string")
 
   thread.vars().aliases[command] = program
 end
 
 function shell.clearAlias(command)
-  rc.expect(1, command, "string")
+  expect(1, command, "string")
 
   thread.vars().aliases[command] = nil
 end

@@ -1,12 +1,12 @@
 -- rc.help
 
 local fs = require("fs")
-local thread = require("thread")
+local thread = require("rc.thread")
 local expect = require("cc.expect").expect
 local completion = require("cc.completion")
 
 local help = {}
-help._DEFAULT_PATH = require("rc")._ROM_DIR.."/help"
+help._DEFAULT_PATH = "/recrafted/help"
 
 function help.init()
   local vars = thread.vars()

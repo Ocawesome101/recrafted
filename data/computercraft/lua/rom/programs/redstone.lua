@@ -1,3 +1,4 @@
+local rc = require("rc")
 local rs = require("redstone")
 local colors = require("colors")
 local textutils = require("textutils")
@@ -71,9 +72,9 @@ function commands.pulse(side, count, period)
 
   for _=1, count, 1 do
     rs.setOutput(side, true)
-    os.sleep(period / 2)
+    rc.sleep(period / 2)
     rs.setOutput(side, false)
-    os.sleep(period / 2)
+    rc.sleep(period / 2)
   end
 
   return true

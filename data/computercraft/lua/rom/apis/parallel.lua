@@ -3,7 +3,7 @@
 
 local parallel = {}
 
-local thread = require("thread")
+local thread = require("rc.thread")
 local expect = require("cc.expect").expect
 
 local function rand_id()

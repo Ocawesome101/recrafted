@@ -1,11 +1,10 @@
 local fs = require("fs")
 local shell = require("shell")
-local printError = require("printError")
 
 local args = {...}
 
 if #args < 2 then
-  printError("usage: copy <source> <destination>")
+  io.stderr:write("usage: copy <source> <destination>\n")
   return
 end
 
@@ -16,7 +15,7 @@ if #files > 0 then
   local dir = fs.isDir(destination)
 
   if #files > 1 and not dir then
-    printError("destination must be a directory")
+    io.stderr:write("destination must be a directory\n")
     return
   end
 
@@ -25,7 +24,7 @@ if #files > 0 then
       fs.copy(files[i], fs.combine(destination, fs.getName(files[i])))
     elseif #files == 1 then
       if fs.exists(destination) then
-        printError("file already exists")
+        io.stderr:write("file already exists\n")
         return
       else
         fs.copy(files[i], destination)
@@ -33,5 +32,5 @@ if #files > 0 then
     end
   end
 else
-  printError("no such file(s)")
+  io.stderr:write("no such file(s)\n")
 end

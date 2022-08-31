@@ -1,6 +1,6 @@
 -- rc.keys
 
-local rc = require("rc")
+local expect = require("cc.expect").expect
 
 -- automatic keymap detection :)
 -- this uses a fair bit of magic
@@ -14,7 +14,7 @@ elseif mcver <= 12 or _HOST:match("CraftOS%-PC") then
   kmap = "lwjgl2"
 end
 
-local base = dofile(rc._ROM_DIR.."/keymaps/"..kmap..".lua")
+local base = dofile("/recrafted/keymaps/"..kmap..".lua")
 local lib = {}
 
 -- reverse-index it!
@@ -22,7 +22,7 @@ for k, v in pairs(base) do lib[k] = v; lib[v] = k end
 lib["return"] = lib.enter
 
 function lib.getName(code)
-  rc.expect(1, code, "number")
+  expect(1, code, "number")
   return lib[code]
 end
 

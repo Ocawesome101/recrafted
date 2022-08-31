@@ -1,155 +1,113 @@
--- Recrafted BIOS file
+-- Recrafted v1.1
 
--- (Most) system APIs go in here, not in _G.
--- You require `recrafted` to get access to them.
-local rc = {}
+_G._RC_ROM_DIR = _RC_ROM_DIR or "/rom"
 
-if _RC_ROM_DIR then
-  rc._ROM_DIR = _RC_ROM_DIR
-  _G._RC_ROM_DIR = nil
-else
-  rc._ROM_DIR = "/rom"
+local function pull(tab, key)
+  local func = tab[key]
+  tab[key] = nil
+  return func
 end
 
-rc.platform = {
-  os = "Recrafted",
-  version = "1.01",
-  advanced = term.isColor(),
-  command = not not commands,
-  turtle = not not turtle,
-  pocket = not not pocket,
-  http = not not http,
+-- this is overwritten further down but `load` needs it
+local expect = function(_, _, _, _) end
+
+local shutdown = pull(os, "shutdown")
+local reboot = pull(os, "reboot")
+
+-- `os` extras go in here now.
+local rc = {
+  _NAME = "Recrafted",
+  _VERSION = {
+    major = 1,
+    minor = 1,
+    patch = 0
+  },
+  queueEvent  = pull(os, "queueEvent"),
+  startTimer  = pull(os, "startTimer"),
+  cancelTimer = pull(os, "cancelTimer"),
+  setAlarm    = pull(os, "setAlarm"),
+  cancelAlarm = pull(os, "cancelAlarm"),
+  getComputerID     = pull(os, "getComputerID"),
+  computerID        = pull(os, "computerID"),
+  getComputerLabel  = pull(os, "getComputerLabel"),
+  computerLabel     = pull(os, "computerLabel"),
+  setComputerLabel  = pull(os, "setComputerLabel"),
+  clock       = pull(os, "clock"),
+  day         = pull(os, "day"),
+  epoch       = pull(os, "epoch"),
 }
 
-local function rm(api)
-  local tab = _G[api]
-  _G[api] = nil
-  return tab
-end
+-- and a few more
+rc.pushEvent = rc.queueEvent
 
--- remove CC-specific globals
-rc.peripheral = rm("peripheral")
-rc.redstone = rm("redstone")
-rc.commands = rm("commands")
-rc.pocket = rm("pocket")
-rc.turtle = rm("turtle")
-rc.http = rm("http")
-rc.term = rm("term")
-rc.fs = rm("fs")
-rc.rs = rm("rs")
-
--- CraftOS-PC APIs
-rc.periphemu = rm("periphemu")
-rc.mounter = rm("mounter")
-rc.config = rm("config")
-
--- CCEmuX API
-rc.ccemux = rm("ccemux")
-
-function rc.version()
-  return "Recrafted 1.0"
-end
-
-rc.term.clear()
-rc.term.setCursorPos(1,1)
-rc.term.write("Starting "..rc.version()..".")
-rc.term.setCursorPos(1,2)
-
--- this is overwritten later
-rc.expect = function(_,_,_,_) end
-
-function rc.write(text)
-  rc.expect(1, text, "string")
-
-  local lines = 0
-  local w, h = rc.term.getSize()
-
-  local function inc_cy(cy)
-    lines = lines + 1
-
-    if cy > h - 1 then
-      rc.term.scroll(1)
-      return cy
-    else
-      return cy + 1
-    end
-  end
-
-  while #text > 0 do
-    local nl = text:find("\n") or #text
-    local chunk = text:sub(1, nl)
-    text = text:sub(#chunk + 1)
-
-    local has_nl = chunk:sub(-1) == "\n"
-    if has_nl then chunk = chunk:sub(1, -2) end
-
-    local cx, cy = rc.term.getCursorPos()
-    while #chunk > 0 do
-      if cx > w then
-        rc.term.setCursorPos(1, inc_cy(cy))
-        cx, cy = rc.term.getCursorPos()
-      end
-
-      local to_write = chunk:sub(1, w - cx + 1)
-      rc.term.write(to_write)
-
-      chunk = chunk:sub(#to_write + 1)
-      cx, cy = rc.term.getCursorPos()
-    end
-
-    if has_nl then
-      rc.term.setCursorPos(1, inc_cy(cy))
-    end
-  end
-
-  return lines
-end
-
--- print() gets to be global.
-function _G.print(...)
-  local args = table.pack(...)
-
-  for i=1, args.n, 1 do
-    args[i] = tostring(args[i])
-  end
-
-  return rc.write(table.concat(args, "  ") .. "\n")
-end
-
-local red = 0x4000
-function rc.printError(...)
-  local old = rc.term.getTextColor()
-  rc.term.setTextColor(red)
-  print(...)
-  rc.term.setTextColor(old)
-end
-
-local _sd = os.shutdown
-function os.shutdown()
-  _sd()
+function rc.shutdown()
+  shutdown()
   while true do coroutine.yield() end
 end
 
--- get rid of Lua 5.1 things.
+function rc.reboot()
+  reboot()
+  while true do coroutine.yield() end
+end
+
+function rc.pullEventRaw(filter)
+  expect(1, filter, "string", "nil")
+
+  local sig
+  repeat
+    sig = table.pack(coroutine.yield())
+  until (not filter) or (sig[1] == filter)
+
+  return table.unpack(sig, 1, sig.n)
+end
+
+function rc.pullEvent(filter)
+  expect(1, filter, "string", "nil")
+
+  local sig
+  repeat
+    sig = table.pack(coroutine.yield())
+    if sig[1] == "terminate" then
+      error("terminated", 0)
+    end
+  until (not filter) or (sig[1] == filter)
+
+  return table.unpack(sig, 1, sig.n)
+end
+
+function rc.sleep(time, no_term)
+  local id = rc.startTimer(time)
+  repeat
+    local _, tid = (no_term and rc.pullEventRaw or rc.pullEvent)("timer")
+  until tid == id
+end
+
+function rc.version()
+  return string.format("Recrafted %d.%d.%d",
+    rc._VERSION.major, rc._VERSION.minor, rc._VERSION.patch)
+end
+
+-- Lua 5.1?  meh
 if _VERSION == "Lua 5.1" then
-  local old_load = rm("load")
+  local old_load = load
+
   rc.lua51 = {
-    loadstring = rm("loadstring"),
-    setfenv = rm("setfenv"),
-    getfenv = rm("getfenv"),
-    unpack = rm("unpack"),
-    log10 = math.log10,
-    maxn = table.maxn
+    loadstring = pull(_G, "loadstring"),
+    setfenv = pull(_G, "setfenv"),
+    getfenv = pull(_G, "getfenv"),
+    unpack = pull(_G, "unpack"),
+    log10 = pull(math, "log10"),
+    maxn = pull(table, "maxn")
   }
 
-  math.log10 = nil
-  table.maxn = nil
+  table.unpack = rc.lua51.unpack
 
   function _G.load(x, name, mode, env)
-    rc.expect(1, x, "string", "function")
-    rc.expect(2, name, "string", "nil")
-    rc.expect(3, mode, "string", "nil")
-    rc.expect(4, env, "table", "nil")
+    expect(1, x, "string", "function")
+    expect(2, name, "string", "nil")
+    expect(3, mode, "string", "nil")
+    expect(4, env, "table", "nil")
+
     env = env or _G
 
     local result, err
@@ -167,6 +125,7 @@ if _VERSION == "Lua 5.1" then
     return result, err
   end
 
+  -- Lua 5.1's xpcall sucks
   local old_xpcall = xpcall
   function _G.xpcall(call, func, ...)
     local args = table.pack(...)
@@ -176,12 +135,13 @@ if _VERSION == "Lua 5.1" then
   end
 end
 
-function _G.loadfile(file, mode, env)
-  rc.expect(1, file, "string")
-  rc.expect(2, mode, "string", "nil")
-  rc.expect(3, env, "table", "nil")
+local fs = rawget(_G, "fs")
+local startup = _RC_ROM_DIR .. "/startup"
+local files = fs.list(startup)
+table.sort(files)
 
-  local handle, err = rc.fs.open(file, "r")
+function _G.loadfile(file)
+  local handle, err = fs.open(file, "r")
   if not handle then
     return nil, err
   end
@@ -189,98 +149,21 @@ function _G.loadfile(file, mode, env)
   local data = handle.readAll()
   handle.close()
 
-  return load(data, "="..file, mode, env)
-end
-
-local function _assert(a, ...)
-  if not a then
-    error(..., 3)
-  else
-    return a, ...
-  end
+  return load(data, "="..file, "t", _G)
 end
 
 function _G.dofile(file)
-  return _assert(loadfile(file))()
+  return assert(loadfile(file))()
 end
 
-print("Loading initialization scripts.")
-
-local files = rc.fs.list(rc._ROM_DIR.."/init")
-table.sort(files)
-
-for _, file in ipairs(files) do
-  print(file)
-  assert(loadfile(rc._ROM_DIR.."/init/"..file))(rc)
+for i=1, #files, 1 do
+  local file = startup .. "/" .. files[i]
+  assert(loadfile(file))(rc)
 end
 
-local thread = require("thread")
-local settings = require("settings")
+expect = require("cc.expect").expect
 
-local function runStartupScripts()
-  if rc.fs.exists("/startup") then
-    if not rc.fs.isDir("/startup") then
-      rc.printError("/startup is not a directory")
-      rc.sleep(1)
-    else
-      print("Loading startup scripts.")
+local thread = require("rc.thread")
 
-      local startup = rc.fs.list("/startup")
-      table.sort(startup)
-      for i=1, #startup, 1 do
-        if settings.get("bios.parallel_startup") then
-          thread.add(function()
-            dofile("/startup/"..startup[i])
-          end, "startup/"..startup[i])
-        else
-          local ok, err = pcall(dofile, "/startup/"..startup[i])
-          if not ok and err then
-            rc.printError(err)
-          end
-        end
-      end
-    end
-  end
-end
-
-if settings.get("bios.compat_mode") then
-  thread.add(function()
-    local sh = require("shell")
-    sh.init()
-    rc.term.at(1,1).clear()
-
-    runStartupScripts()
-
-    local ok, err = sh.run(rc._ROM_DIR.."/programs/craftos.lua",
-      rc._ROM_DIR.."/programs/shell.lua")
-    if not ok then
-      rc.printError(err)
-      rc.sleep(1)
-    end
-  end)
-else
-  if settings.get("bios.restrict_globals") then
-    -- disallow globals
-    setmetatable(_G, {__newindex = function(_, k)
-      error("attempt to create global variable " .. k)
-    end, __metatable = {}})
-  end
-
-  if settings.get("bios.use_multishell") then
-    thread.add(function()
-      runStartupScripts()
-      require("multishell").launch(nil, rc._ROM_DIR.."/programs/shell.lua")
-    end)
-  else
-    thread.add(function()
-      rc.term.at(1,1).clear()
-      runStartupScripts()
-      dofile(rc._ROM_DIR.."/programs/shell.lua")
-    end, "shell")
-  end
-end
-
-print("Starting coroutine manager.")
-
-rc.queueEvent("init")
+rc.pushEvent("init")
 thread.start()

@@ -3,7 +3,6 @@
 local term = require("term")
 local colors = require("colors")
 local pretty = require("cc.pretty")
-local printError = require("printError")
 
 local env = setmetatable({}, {__index=_G})
 
@@ -31,13 +30,13 @@ while run do
   if ok then
     local result = table.pack(pcall(ok))
     if not result[1] then
-      printError(result[2])
+      io.stderr:write(result[2], "\n")
     elseif result.n > 1 then
       for i=2, result.n, 1 do
         pretty.pretty_print(result[i])
       end
     end
   else
-    printError(err)
+    io.stderr:write(err, "\n")
   end
 end

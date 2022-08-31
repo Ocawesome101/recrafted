@@ -1,7 +1,5 @@
 -- cc.expect
 
-local rc = require("rc")
-
 local _expect = {}
 
 local function checkType(index, valueType, value, ...)
@@ -49,5 +47,4 @@ setmetatable(_expect, {__call = function(_, ...)
   return _expect.expect(...)
 end})
 
-rc.expect = _expect.expect
 return _expect
