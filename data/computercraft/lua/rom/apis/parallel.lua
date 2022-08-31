@@ -23,7 +23,7 @@ local function waitForN(num, ...)
   end
 
   for i=1, #funcs, 1 do
-    threads[i] = thread.add(funcs[i], rand_id())
+    threads[i] = thread.spawn(funcs[i], rand_id())
   end
 
   local dead = 0
