@@ -111,7 +111,7 @@ local function execProgram(fork, command, ...)
     local result
     local id = thread.spawn(function()
       shell.init()
-      result = table.pack(callCommand(command, ok,
+      result = table.pack(callCommand(path, ok,
         table.unpack(args, 1, args.n)))
     end, command)
 
@@ -121,8 +121,10 @@ local function execProgram(fork, command, ...)
       return table.unpack(result, 1, result.n)
     end
 
+    return true
+
   else
-    return callCommand(command, ok, ...)
+    return callCommand(path, ok, ...)
   end
 end
 
@@ -188,7 +190,7 @@ function shell.resolve(path)
     return path
   end
 
-  return "/" .. fs.combine(thread.dir(), path)
+  return fs.combine(thread.dir(), path)
 end
 
 function shell.resolveProgram(path)

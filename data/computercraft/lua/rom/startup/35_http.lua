@@ -113,10 +113,10 @@ function http.checkURL(url)
     return nil, err
   end
 
-  local sig, a, b
+  local sig, _url, a, b
   repeat
-    sig, a, b = coroutine.yield()
-  until sig == "http_check" and a == url
+    sig, _url, a, b = coroutine.yield()
+  until sig == "http_check" and url == _url
 
   return a, b
 end

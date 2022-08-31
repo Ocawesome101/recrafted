@@ -280,7 +280,7 @@ function tu.urlEncode(str)
 
   -- TODO: possibly UTF-8 support?
   str = str:gsub("[^%w %-%_%.]", function(c)
-    return string.format("%%%02x", c)
+    return string.format("%%%02x", c:byte())
   end):gsub(" ", "+"):gsub("\n", "\r\n")
 
   return str

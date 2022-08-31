@@ -8,13 +8,18 @@ end
 
 local libs = {
   "peripheral", "fs", "settings", "http", "term", "colors", "multishell",
-  "keys", "parallel", "settings", "shell", "textutils", "window", "write",
-  "paintutils"
+  "keys", "parallel", "shell", "textutils", "window", "paintutils"
 }
 
 for i=1, #libs, 1 do
   _G[libs[i]] = select(2, pcall(require, libs[i]))
 end
+
+function _G.printError(text)
+  io.stderr:write(text, "\n")
+end
+
+_G.write = require("rc").write
 
 _G.unpack = table.unpack
 for k, v in pairs(require("rc").lua51) do
@@ -26,4 +31,4 @@ function os.version()
   return "CraftOS 1.8"
 end
 
-shell.run(require'rc'._ROM_DIR.."/programs/shell.lua")
+shell.run("/rc/programs/shell.lua")

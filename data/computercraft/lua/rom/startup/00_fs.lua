@@ -84,7 +84,7 @@ end
 local getSize = fs.getSize
 function fs.getSize(path)
   expect(1, path, "string")
-  return getSize(resolve(path))
+  return getSize((resolve(path)))
 end
 
 -- override: fs.isDir

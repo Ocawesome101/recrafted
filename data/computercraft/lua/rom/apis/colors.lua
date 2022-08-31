@@ -41,7 +41,7 @@ function colors.combine(...)
   local cols = {...}
   for i=1, #cols, 1 do
     expect.expect(i, cols[i], "number")
-    ret = ret + cols[i]
+    ret = bit32.bor(ret, cols[i])
   end
   return ret
 end
@@ -51,7 +51,7 @@ function colors.subtract(cols, ...)
   local subt = {...}
   for i=1, #subt, 1 do
     expect.expect(i+1, subt[i], "number")
-    cols = cols + subt[i]
+    cols = bit32.band(cols, bit32.bnot(subt[i]))
   end
   return cols
 end
