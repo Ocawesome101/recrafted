@@ -1,4 +1,4 @@
--- Recrafted 1.2.0
+-- Recrafted 1.3.0
 
 local fs = rawget(_G, "fs")
 
@@ -11,7 +11,8 @@ if fs.exists("/.start_rc.lua") and not (...) then
   handle.close()
 
   local _sd = rawget(os, "shutdown")
-  assert((loadstring or load)(data, "=start_rc"))(true)
+  local ld = rawget(_G, "loadstring") or load
+  assert(ld(data, "=start_rc"))(true)
   _sd()
   while true do coroutine.yield() end
 end
@@ -33,7 +34,7 @@ local rc = {
   _NAME = "Recrafted",
   _VERSION = {
     major = 1,
-    minor = 2,
+    minor = 3,
     patch = 0
   },
   queueEvent  = pull(os, "queueEvent"),
