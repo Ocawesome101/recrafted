@@ -110,11 +110,11 @@ return {
   [335] = "numpadEnter",
   [336] = "numpadEqual",
   [340] = "leftShift",
-  [341] = "leftControl",
+  [341] = "leftCtrl",
   [342] = "leftAlt",
   [343] = "leftSuper",
   [344] = "rightShift",
-  [345] = "rightControl",
+  [345] = "rightCtrl",
   [346] = "rightAlt",
   [348] = "menu",
 }

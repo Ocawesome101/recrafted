@@ -4,11 +4,13 @@
 
 local rc = require("rc")
 local fs = require("fs")
+local keys = require("keys")
+local term = require("term")
+local colors = require("colors")
 local window = require("window")
 local expect = require("cc.expect")
-local colors = require("colors")
 local copy = require("rc.copy").copy
-local term = require("term")
+
 local getfenv = rc.lua51.getfenv
 
 local tabs = { {} }
@@ -132,6 +134,7 @@ function api.setTerm(new)
   end
 end
 
+local w, h
 local function getName(tab)
   local highest = 0
 
@@ -158,12 +161,20 @@ function api.remove(id)
   threads[id or current.id] = nil
 end
 
-local w, h
+local scroll = 0
+local totalNameLength = 0
 local function redraw()
   w, h = native.getSize()
 
+  local names = {}
+  totalNameLength = 0
+  for i=1, #tabs, 1 do
+    names[i] = " " .. getName(tabs[i]) .. " "
+    totalNameLength = totalNameLength + #names[i]
+  end
+
   if #tabs > 1 then
-    local len = 1
+    local len = -scroll + 1
     native.setCursorPos(1, 1)
     native.setTextColor(colors.black)
     native.setBackgroundColor(colors.gray)
@@ -171,7 +182,7 @@ local function redraw()
 
     for i=1, #tabs, 1 do
       local tab = tabs[i]
-      local name = " " .. getName(tab) .. " "
+      local name = names[i]
 
       native.setCursorPos(len, 1)
       len = len + #name
@@ -191,6 +202,19 @@ local function redraw()
       tab.term.reposition(1, 2, w, h - 1)
     end
 
+    if totalNameLength > w-2 then
+      native.setTextColor(colors.black)
+      native.setBackgroundColor(colors.gray)
+      if scroll > 0 then
+        native.setCursorPos(1, 1)
+        native.write("<")
+      end
+      if totalNameLength - scroll > w-1 then
+        native.setCursorPos(w, 1)
+        native.write(">")
+      end
+    end
+
     tabs[focused].term.setVisible(true)
 
   elseif #tabs > 0 then
@@ -207,19 +231,25 @@ local inputEvents = {
   mouse_up = true,
   mouse_drag = true,
   mouse_click = true,
+  mouse_scroll = true,
   terminate = true,
 }
 
-local function processEvent(event)
-  local shouldFire = true
+local altIsDown
 
+local function processEvent(event)
   if inputEvents[event[1]] then
     if #event > 3 then -- mouse event
 
       if #tabs > 1 then
         if event[4] == 1 then
-          shouldFire = false
-          local curX = 0
+          local curX = -scroll
+
+          if event[1] == "mouse_scroll" then
+            scroll = math.max(0, math.min(totalNameLength-w+1,
+              scroll - event[2]))
+            return false
+          end
 
           for i=1, #tabs, 1 do
             local tab = tabs[i]
@@ -232,14 +262,49 @@ local function processEvent(event)
             end
           end
 
+          return false
+
         else
           event[4] = event[4] - 1
         end
       end
+
+    elseif event[1] == "key" then
+      if event[2] == keys.rightAlt then
+        altIsDown = event[2]
+        return false
+
+      elseif altIsDown then
+        local num = tonumber(keys.getName(event[2]))
+        if num then
+          if tabs[num] then
+            focused = num
+            redraw()
+            return false
+          end
+
+        elseif event[2] == keys.left then
+          focused = math.max(1, focused - 1)
+          redraw()
+          return false
+
+        elseif event[2] == keys.right then
+          focused = math.min(#tabs, focused + 1)
+          redraw()
+          return false
+        end
+      end
+
+    elseif event[1] == "key_up" then
+      if event[2] == keys.rightAlt then
+        altIsDown = false
+        return false
+      end
+
     end
   end
 
-  return shouldFire
+  return true
 end
 
 local function cleanTabs()
