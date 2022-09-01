@@ -1,0 +1,26 @@
+Recrafted is ComputerCraft's CraftOS but with saner API design. It's also not licensed under the CCPL, but rather the MIT license -- so you can freely use Recrafted's code in other projects without being legally bound to license them under the CCPL.
+
+
+All APIs are implemented as described on the CC: Tweaked wiki at 
+>>color blue
+https://tweaked.cc
+>>color white
+, with slight modifications to fit Recrafted's API design. Certain modules not written by Dan200 have been adapted from CraftOS, relicensed under the MIT license with permission from their authors.
+
+
+Recrafted addresses several major pain points many have with CraftOS. It has native multithreading support (not just parallel, but a full scheduler); changes to package.path are fully persistent; os.loadAPI has been altogether discarded; none of the APIs provided by the system are inserted into
+>>color lightGray
+_G
+>>color white
+ at boot--instead they must be loaded using 
+>>color lightGray
+require
+>>color white
+(), as per Lua convention. And, of course,
+the CCPL is no longer in the picture.
+
+For questions about Recrafted, or generally to discuss it in greater depth, please use the 
+>>color lightGray
+#recrafted
+>>color white
+ channel in my Discord guild.

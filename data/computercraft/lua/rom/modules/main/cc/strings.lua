@@ -4,46 +4,86 @@ local term = require("term")
 local expect = require("cc.expect").expect
 local strings = {}
 
+local function count(...)
+  local tab = table.pack(...)
+  local n = 0
+
+  for i=1, tab.n, 1 do
+    if tab[i] then n = n + 1 end
+  end
+
+  return n
+end
+
+function strings.splitElements(text)
+  local tokens = {}
+
+  while #text > 0 do
+    local ws = text:match("^[ \t]+")
+    local nl = text:match("^\n+")
+    local sep = text:match("^[%-%+%*]+")
+    local word = text:match("^[^ \t\n%-%+%*]+")
+
+    if count(ws, nl, sep, word) > 1 then
+      error(("Edge case: %q, %q, %q, %q"):format(ws, nl, sep, word), 0)
+    end
+
+    local token = ws or nl or sep or word
+    text = text:sub(#token + 1)
+    tokens[#tokens+1] = { text = token, type = ws and "ws" or nl and "nl"
+      or sep and "word" or word and "word" }
+  end
+
+  return tokens
+end
+
+local function write_word(lines, width, token)
+  if token.type == "nl" then
+    for _=1, #token.text, 1 do
+      lines[#lines + 1] = ""
+    end
+
+  elseif token.type == "ws" then
+    local line = lines[#lines]
+    if #line + #token.text >= width then
+      lines[#lines + 1] = ""
+    else
+      lines[#lines] = line .. token.text
+    end
+
+  elseif token.type == "word" then
+    local line = lines[#lines]
+    local half = math.ceil(#token.text / 2)
+
+    if #line + #token.text > width then
+      if #line + half < width and #token.text > width/2 then
+        local halfText = token.text:sub(1, math.floor(#token.text / 2)) .. "-"
+        lines[#lines] = line .. halfText
+        token.text = token.text:sub(#halfText)
+      end
+
+      lines[#lines + 1] = token.text
+
+    else
+      lines[#lines] = line .. token.text
+    end
+  end
+end
+
 function strings.wrap(text, width)
   expect(1, text, "string")
   expect(2, width, "number", "nil")
 
   width = width or term.getSize()
 
-  local whitespace = "[ \t\n\r]"
-  local splitters = "[ %=%+]"
-  local ws_sp = whitespace:sub(1,-2) .. splitters:sub(2)
+  local lines = { "" }
+  local tokens = strings.splitElements(text)
 
-  local odat = ""
-
-  local len = 0
-  for c in text:gmatch(".") do
-    odat = odat .. c
-    len = len + 1
-
-    if c == "\n" then
-      len = 0
-
-    elseif len >= width then
-      local last = odat:reverse():find(splitters)
-      local last_nl = odat:reverse():find("\n") or 0
-      local indt = odat:sub(-last_nl + 1):match("^ *") or ""
-
-      if last and last < math.floor(width / 4) and last > 1 and
-          not c:match(ws_sp) then
-        odat = odat:sub(1, -last) .. "\n" .. indt .. odat:sub(-last + 1)
-        len = last + #indt - 1
-
-      else
-        odat = odat .. "\n" .. indt
-        len = #indt
-      end
-    end
+  for i=1, #tokens, 1 do
+    write_word(lines, width, tokens[i])
   end
 
-  if odat:sub(-1) ~= "\n" then odat = odat .. "\n" end
-
-  return odat
+  return lines
 end
 
 function strings.ensure_width(line, width)

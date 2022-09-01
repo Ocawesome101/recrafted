@@ -6,6 +6,7 @@ local rc = ...
 -- we need a couple of these
 local colors = require("colors")
 local native = require("term")
+local strings = require("cc.strings")
 local expect = require("cc.expect").expect
 
 local term = {}
