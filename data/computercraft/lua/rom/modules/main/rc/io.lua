@@ -187,9 +187,7 @@ function io.lines(file, ...)
   expect(1, file, "string", "nil")
   if file then file = assert(io.open(file, "r")) end
   local formats = table.pack(...)
-  return function()
-    return (file or io.stdin):lines(table.unpack(formats, 1, formats.n))
-  end
+  return (file or io.stdin):lines(table.unpack(formats, 1, formats.n))
 end
 
 function io.type(obj)

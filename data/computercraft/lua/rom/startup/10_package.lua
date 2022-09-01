@@ -85,12 +85,6 @@ function package.searchpath(name, path, sep, rep)
   expect(3, sep, "string", "nil")
   expect(4, rep, "string", "nil")
 
-  --[[rc.startTimer(0)
-  coroutine.yield()
-  if debug.traceback():match("([^\n]+)[^\n]*%.%.%.\n%1") then
-    error(name)
-  end]]
-
   sep = "%" .. (sep or ".")
   rep = rep or "/"
 

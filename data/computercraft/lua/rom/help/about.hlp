@@ -8,7 +8,7 @@ https://tweaked.cc
 , with slight modifications to fit Recrafted's API design. Certain modules not written by Dan200 have been adapted from CraftOS, relicensed under the MIT license with permission from their authors.
 
 
-Recrafted addresses several major pain points many have with CraftOS. It has native multithreading support (not just parallel, but a full scheduler); changes to package.path are fully persistent; os.loadAPI has been altogether discarded; none of the APIs provided by the system are inserted into
+Recrafted addresses several major pain points many have with CraftOS. It has native multithreading support (not just parallel, but a full scheduler); changes to package.path are fully persistent; os.loadAPI has been altogether discarded; none of the APIs provided by the system are inserted into 
 >>color lightGray
 _G
 >>color white

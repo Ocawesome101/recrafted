@@ -64,13 +64,16 @@ function rc.reboot()
   while true do coroutine.yield() end
 end
 
+local timer_filter = {}
 function rc.pullEventRaw(filter)
   expect(1, filter, "string", "nil")
 
   local sig
   repeat
     sig = table.pack(coroutine.yield())
-  until (not filter) or (sig[1] == filter)
+  until ((sig[1] == "timer" and
+    timer_filter[sig[2]] == require("rc.thread").id()) or sig[1] ~= "timer")
+    and (not filter) or (sig[1] == filter)
 
   return table.unpack(sig, 1, sig.n)
 end
@@ -84,13 +87,18 @@ function rc.pullEvent(filter)
     if sig[1] == "terminate" then
       error("terminated", 0)
     end
-  until (not filter) or (sig[1] == filter)
+  until ((sig[1] == "timer" and
+    timer_filter[sig[2]] == require("rc.thread").id()) or sig[1] ~= "timer")
+    and (not filter) or (sig[1] == filter)
 
   return table.unpack(sig, 1, sig.n)
 end
 
 function rc.sleep(time, no_term)
   local id = rc.startTimer(time)
+  local thread = require("rc.thread").id()
+  timer_filter[id] = thread
+
   repeat
     local _, tid = (no_term and rc.pullEventRaw or rc.pullEvent)("timer")
   until tid == id

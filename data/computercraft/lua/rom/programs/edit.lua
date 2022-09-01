@@ -106,7 +106,7 @@ local function processMenuInput()
   elseif event == "key" then
     id = keys.getName(id)
 
-    if id == "leftControl" or id == "rightControl" then
+    if id == "leftCtrl" or id == "rightCtrl" then
       state.status = "Press Control for menu"
       menu = false
     end
@@ -208,7 +208,7 @@ local function processInput()
         state.cx = state.cx + 1
       end
 
-    elseif id == "leftControl" or id == "rightControl" then
+    elseif id == "leftCtrl" or id == "rightCtrl" then
       state.status = "S:save  E:exit"
       menu = true
 

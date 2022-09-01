@@ -48,10 +48,13 @@ function window.create(parent, x, y, width, height, visible)
   end
 
   local function draw()
+    local blink = parent.getCursorBlink()
+    parent.setCursorBlink(false)
     for i=1, height, 1 do
       parent.setCursorPos(x, y + i - 1)
       parent.blit(textbuf[i], fgbuf[i], bgbuf[i])
     end
+    parent.setCursorBlink(blink)
   end
 
   local function restorePalette()

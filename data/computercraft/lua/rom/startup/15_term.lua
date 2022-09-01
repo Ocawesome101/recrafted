@@ -80,7 +80,61 @@ end
 local keys = require("keys")
 
 -- rc.write
+-- [[
 function rc.write(text)
+  expect(1, text, "string")
+
+  local lines = 0
+  local w, h = term.getSize()
+  local x, y = term.getCursorPos()
+
+  local function newline()
+    lines = lines + 1
+
+    x = 1
+    if y >= h then
+      term.scroll(1)
+    else
+      y = y + 1
+    end
+
+    term.at(x, y)
+  end
+
+  local elements = strings.splitElements(text, w)
+
+  for i=1, #elements, 1 do
+    local e = elements[i]
+
+    if e.type == "nl" then
+      for _=1, #e.text do newline() end
+
+    elseif e.type == "ws" then
+      if x + #e.text > w+1 then
+        newline()
+
+      elseif x > 0 then
+        term.at(x, y).write(e.text)
+        x = x + #e.text
+      end
+
+    elseif e.type == "word" then
+      if x + #e.text > w+1 and x > 1 then
+        newline()
+      end
+
+      term.at(x, y).write(e.text)
+      x = x + #e.text
+    end
+  end
+
+  return lines
+end
+
+--]]
+
+-- old write() used for redrawing in read()
+local function write(text)
   expect(1, text, "string")
 
   local lines = 0
@@ -125,7 +179,7 @@ function rc.write(text)
   end
 
   return lines
-end
+end--]]
 
 -- read
 local empty = {}
@@ -158,7 +212,7 @@ function term.read(replace, history, complete, default)
 
   local function clearCompletion()
     if completions[comp_id] then
-      rc.write((" "):rep(#completions[comp_id]))
+      write((" "):rep(#completions[comp_id]))
     end
   end
 
@@ -173,18 +227,18 @@ function term.read(replace, history, complete, default)
       term.setCursorPos(stx, sty)
       local text = buffer
       if replace then text = replace:rep(#text) end
-      local ln = rc.write(text)
+      local ln = write(text)
 
       if completions[comp_id] then
         local oldfg = term.getTextColor()
         local oldbg = term.getBackgroundColor()
         term.setTextColor(colors.white)
         term.setBackgroundColor(colors.gray)
-        ln = ln + rc.write(completions[comp_id])
+        ln = ln + write(completions[comp_id])
         term.setTextColor(oldfg)
         term.setBackgroundColor(oldbg)
       else
-        ln = ln + rc.write(" ")
+        ln = ln + write(" ")
       end
 
       if sty + ln > h then
@@ -331,7 +385,7 @@ function term.read(replace, history, complete, default)
 
       elseif id == "enter" then
         clearCompletion()
-        rc.write("\n")
+        write("\n")
         break
       end
     end
