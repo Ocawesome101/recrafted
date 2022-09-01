@@ -15,7 +15,7 @@ local getfenv = rc.lua51.getfenv
 
 local tabs = { {} }
 local threads = {}
-local current, native
+local current, wrappedNative
 
 local focused = 1
 
@@ -26,7 +26,7 @@ function api.launchTab(x, name)
   name = expect(2, name, "string", "nil") or tostring(x)
 
   local newTab = {
-    term = window.create(native, 1, 1, native.getSize()),
+    term = window.create(wrappedNative, 1, 1, wrappedNative.getSize()),
     id = #tabs + 1
   }
 
@@ -164,7 +164,9 @@ end
 local scroll = 0
 local totalNameLength = 0
 local function redraw()
-  w, h = native.getSize()
+  w, h = wrappedNative.getSize()
+
+  wrappedNative.setVisible(false)
 
   local names = {}
   totalNameLength = 0
@@ -175,27 +177,27 @@ local function redraw()
 
   if #tabs > 1 then
     local len = -scroll + 1
-    native.setCursorPos(1, 1)
-    native.setTextColor(colors.black)
-    native.setBackgroundColor(colors.gray)
-    native.clearLine()
+    wrappedNative.setCursorPos(1, 1)
+    wrappedNative.setTextColor(colors.black)
+    wrappedNative.setBackgroundColor(colors.gray)
+    wrappedNative.clearLine()
 
     for i=1, #tabs, 1 do
       local tab = tabs[i]
       local name = names[i]
 
-      native.setCursorPos(len, 1)
+      wrappedNative.setCursorPos(len, 1)
       len = len + #name
 
       if i == focused then
-        native.setTextColor(colors.yellow)
-        native.setBackgroundColor(colors.black)
-        native.write(name)
+        wrappedNative.setTextColor(colors.yellow)
+        wrappedNative.setBackgroundColor(colors.black)
+        wrappedNative.write(name)
 
       else
-        native.setTextColor(colors.black)
-        native.setBackgroundColor(colors.gray)
-        native.write(name)
+        wrappedNative.setTextColor(colors.black)
+        wrappedNative.setBackgroundColor(colors.gray)
+        wrappedNative.write(name)
       end
 
       tab.term.setVisible(false)
@@ -203,15 +205,15 @@ local function redraw()
     end
 
     if totalNameLength > w-2 then
-      native.setTextColor(colors.black)
-      native.setBackgroundColor(colors.gray)
+      wrappedNative.setTextColor(colors.black)
+      wrappedNative.setBackgroundColor(colors.gray)
       if scroll > 0 then
-        native.setCursorPos(1, 1)
-        native.write("<")
+        wrappedNative.setCursorPos(1, 1)
+        wrappedNative.write("<")
       end
       if totalNameLength - scroll > w-1 then
-        native.setCursorPos(w, 1)
-        native.write(">")
+        wrappedNative.setCursorPos(w, 1)
+        wrappedNative.write(">")
       end
     end
 
@@ -222,6 +224,8 @@ local function redraw()
     tab.term.reposition(1, 1, w, h)
     tab.term.setVisible(true)
   end
+
+  wrappedNative.setVisible(true)
 end
 
 local inputEvents = {
@@ -292,6 +296,16 @@ local function processEvent(event)
           focused = math.min(#tabs, focused + 1)
           redraw()
           return false
+
+        elseif event[2] == keys.up then
+          scroll = math.max(0, math.min(totalNameLength-w+1,
+            scroll + 1))
+          return false
+
+        elseif event[2] == keys.down then
+          scroll = math.max(0, math.min(totalNameLength-w+1,
+            scroll - 1))
+          return false
         end
       end
 
@@ -337,7 +351,8 @@ end
 function api.start()
   api.start = nil
 
-  native = term.native()
+  local _native = term.native()
+  wrappedNative = window.create(_native, 1, 1, _native.getSize())
   api.launchTab("/rc/programs/shell.lua", "shell")
 
   rc.pushEvent("init")
@@ -346,6 +361,10 @@ function api.start()
     cleanTabs()
     redraw()
     local event = table.pack(coroutine.yield())
+
+    if event[1] == "term_resize" then
+      wrappedNative.reposition(1, 1, _native.getSize())
+    end
 
     if processEvent(event) then
       for tid, thread in pairs(threads) do
