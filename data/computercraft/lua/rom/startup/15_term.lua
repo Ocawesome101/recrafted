@@ -88,45 +88,31 @@ function rc.write(text)
   local w, h = term.getSize()
   local x, y = term.getCursorPos()
 
-  local function newline()
-    lines = lines + 1
-
-    x = 1
-    if y >= h then
-      term.scroll(1)
-    else
-      y = y + 1
-    end
-
-    term.at(x, y)
-  end
-
   local elements = strings.splitElements(text, w)
 
-  for i=1, #elements, 1 do
-    local e = elements[i]
+  strings.wrappedWriteElements(elements, w, false, {
+    newline = function()
+      lines = lines + 1
 
-    if e.type == "nl" then
-      for _=1, #e.text do newline() end
-
-    elseif e.type == "ws" then
-      if x + #e.text > w+1 then
-        newline()
-
-      elseif x > 0 then
-        term.at(x, y).write(e.text)
-        x = x + #e.text
+      x = 1
+      if y >= h then
+        term.scroll(1)
+      else
+        y = y + 1
       end
 
-    elseif e.type == "word" then
-      if x + #e.text > w+1 and x > 1 then
-        newline()
-      end
+      term.at(x, y)
+    end,
 
-      term.at(x, y).write(e.text)
-      x = x + #e.text
+    append = function(newText)
+      term.at(x, y).write(newText)
+      x = x + #newText
+    end,
+
+    getX = function()
+      return x
     end
-  end
+  })
 
   return lines
 end

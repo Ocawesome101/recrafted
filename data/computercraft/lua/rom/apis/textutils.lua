@@ -42,51 +42,34 @@ local function pagedWrite(text, begin)
   local realTotal = 0
   local lines = begin or 0
 
-  local function newline()
-    rc.write("\n")
-    realTotal = realTotal + 1
-    lines = lines + 1
-    x, y = term.getCursorPos()
-
-    if lines >= h - 2 then
-      local old = term.getTextColor()
-      term.setTextColor(colors.white)
-      rc.write("Press any key to continue")
-      term.setTextColor(old)
-      rc.pullEvent("char")
-      local _, _y = term.getCursorPos()
-      term.at(1, _y).clearLine()
-      lines = 0
-    end
-
-  end
-
   local elements = strings.splitElements(text, w)
 
-  for i=1, #elements, 1 do
-    local e = elements[i]
+  strings.wrappedWriteElements(elements, w, false, {
+    newline = function()
+      rc.write("\n")
+      realTotal = realTotal + 1
+      lines = lines + 1
+      x, y = term.getCursorPos()
 
-    if e.type == "nl" then
-      for _=1, #e.text do newline() end
-
-    elseif e.type == "ws" then
-      if x + #e.text > w+1 then
-        newline()
-
-      elseif x > 0 then
-        term.at(x, y).write(e.text)
-        x = x + #e.text
+      if lines >= h - 2 then
+        local old = term.getTextColor()
+        term.setTextColor(colors.white)
+        rc.write("Press any key to continue")
+        term.setTextColor(old)
+        rc.pullEvent("char")
+        local _, _y = term.getCursorPos()
+        term.at(1, _y).clearLine()
+        lines = 0
       end
+    end,
 
-    elseif e.type == "word" then
-      if x + #e.text > w+1 and x > 1 then
-        newline()
-      end
+    append = function(newText)
+      term.at(x, y).write(newText)
+      x = x + #newText
+    end,
 
-      term.at(x, y).write(e.text)
-      x = x + #e.text
-    end
-  end
+    getX = function() return x end
+  })
 
   return realTotal, lines
 end

@@ -1,7 +1,9 @@
 -- cc.strings
 
 local term = require("term")
-local expect = require("cc.expect").expect
+local expectlib = require("cc.expect")
+local expect = expectlib.expect
+local field = expectlib.field
 local strings = {}
 
 local function count(...)
@@ -46,66 +48,76 @@ function strings.splitElements(text, limit)
   return tokens
 end
 
-local function write_word(lines, width, token, begin)
-  if token.type == "nl" then
-    for _=1, #token.text, 1 do
-      lines[#lines + 1] = ""
-    end
-
-  elseif token.type == "ws" then
-    local line = lines[#lines]
-    if #line + #token.text + begin >= width then
-      lines[#lines + 1] = ""
-    elseif #line + begin > 0 then
-      lines[#lines] = line .. token.text
-    end
-
-  elseif token.type == "word" then
-    local line = lines[#lines]
-    local half = math.ceil(#token.text / 2)
-
-    if #line + #token.text + begin > width then
-      if #line + begin + half < width and #token.text > width/2 then
-        local halfText = token.text:sub(1, math.floor(#token.text / 2)) .. "-"
-        lines[#lines] = line .. halfText
-        token.text = token.text:sub(#halfText)
-      end
-
-      lines[#lines + 1] = token.text
-
-    else
-      lines[#lines] = line .. token.text
-    end
-  end
-end
---[[
-function strings.wrappedWriteElements(elements, width, handler)
+function strings.wrappedWriteElements(elements, width, doHalves, handler)
   expect(1, elements, "table")
-  expect(2, width, "number", "nil")
-  expect(3, handler, "table")
+  expect(2, width, "number")
+  expect(3, doHalves, "boolean", "nil")
+  expect(4, handler, "table")
+
+  field(handler, "newline", "function")
+  field(handler, "append", "function")
+  field(handler, "getX", "function")
 
   for i=1, #elements, 1 do
     local e = elements[i]
-    if e.type == "nl" then
-      for _=1, #e
-  end
-end--]]
 
-function strings.wrap(text, width, begin)
+    if e.type == "nl" then
+      for _=1, #e.text do handler.newline() end
+
+    elseif e.type == "ws" then
+      local x = handler.getX()
+
+      if x + #e.text > width + 1 then
+        handler.newline()
+
+      else
+        handler.append(e.text)
+      end
+
+    elseif e.type == "word" then
+      local x = handler.getX()
+      local half = math.ceil(#e.text / 2)
+
+      if x + #e.text > width + 1 then
+        if doHalves and x + half < width and #e.text > width/2 then
+          local halfText = e.text:sub(1, math.floor(#e.text / 2)) .. "-"
+          e.text = e.text:sub(#halfText)
+          handler.append(halfText)
+          handler.newline()
+
+        elseif x > 1 then
+          handler.newline()
+        end
+      end
+
+      handler.append(e.text)
+    end
+  end
+end
+
+function strings.wrap(text, width, doHalves)
   expect(1, text, "string")
   expect(2, width, "number", "nil")
-  expect(3, begin, "number", "nil")
+  expect(3, doHalves, "boolean", "nil")
 
   width = width or term.getSize()
-  begin = begin or 0
 
   local lines = { "" }
-  local tokens = strings.splitElements(text, width)
+  local elements = strings.splitElements(text, width)
 
-  for i=1, #tokens, 1 do
-    write_word(lines, width, tokens[i], begin)
-    if #lines > 1 then begin = 0 end
-  end
+  strings.wrappedWriteElements(elements, width, doHalves, {
+    newline = function()
+      lines[#lines+1] = ""
+    end,
+
+    append = function(newText)
+      lines[#lines] = lines[#lines] .. newText
+    end,
+
+    getX = function()
+      return #lines[#lines]
+    end
+  })
 
   return lines
 end
