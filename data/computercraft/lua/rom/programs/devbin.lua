@@ -5,7 +5,7 @@ if not package.loaded.http then
 end
 
 local http = require("http")
-local json = require("json")
+local json = require("rc.json")
 local shell = require("shell")
 
 local args = {...}
@@ -20,7 +20,7 @@ devbin run <code> [argument ...]
   return
 end
 
-local paste = "https://devbin.dev/api/v2/paste"
+local paste = "https://devbin.dev/api/v3/paste"
 local key = "aNVXl8vxYGWcZGvMnuJTzLXH53mGWOuQtBXU025g8YDAsZDu"
 
 local function get(code)
@@ -48,7 +48,7 @@ if args[1] == "put" then
 
   local request = json.encode({
     title = args[2],
-    syntax = "lua",
+    syntaxName = "lua",
     exposure = 0,
     content = data,
     asGuest = true
@@ -57,7 +57,9 @@ if args[1] == "put" then
   local response, rerr, rerr2 = http.post(paste, request,
     {["Content-Type"]="application/json", Authorization = key}, true)
   if not response then
+    local _rerr2 = rerr2.readAll()
     if rerr2 then rerr2.close() end
+    print(_rerr2)
     error(rerr, 0)
     --("%q: %q"):format(rerr, (rerr2 and rerr2.readAll()) or ""), 0)
   end
@@ -66,8 +68,8 @@ if args[1] == "put" then
 
   local code, message = response.getResponseCode()
   response.close()
-  if code ~= 200 then
-    error(code .. " " .. message, 0)
+  if code ~= 201 then
+    error(code .. " " .. (message or ""), 0)
   end
 
   local decoded = json.decode(rdata)
