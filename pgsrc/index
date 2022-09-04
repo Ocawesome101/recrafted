@@ -1,6 +1,8 @@
 %{*yellow{Recrafted 1.0
 />} about
 
+*red{This page is outdated.}
+
 Recrafted is ComputerCraft's CraftOS but with saner
 API design.  It's also not licensed under the CCPL,
 but rather the MIT license -- so you can freely use
@@ -27,7 +29,7 @@ the CCPL is no longer present.
 
 For  questions  about Recrafted,  or  generally  to
 discuss   it  in  greater  depth,  please  use  the
-#recrafted channel in @my Discord guild{https://discord.gg/6kXmSAcPWC}.
+#recrafted channel in @my Discord guild{https://discord.gg/wUS85Ay6bR}.
 
 *yellow{/>} help whatsnew
 
