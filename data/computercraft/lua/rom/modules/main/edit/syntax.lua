@@ -98,8 +98,8 @@ function lib.new(file)
       -- sort possibilities by length - and deprioritize whitespace/word
       table.sort(possibilities, function(a, b)
         return #a.token > #b.token
+            or (#a.token == #b.token and b.class == "word")
             or b.class == "whitespace"
-            or b.class == "word"
       end)
 
       if #possibilities == 0 then

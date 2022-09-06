@@ -75,6 +75,9 @@ local syn = {
             return true
           end
         end
+      end,
+      function(t)
+        return #t > 3
       end
     }
   },
@@ -115,7 +118,7 @@ local syn = {
         end
       end,
       function(t)
-        return #t > 3
+        return #t > 2
       end
     }
   },
