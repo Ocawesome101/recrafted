@@ -116,6 +116,8 @@ function api.setDir(dir)
   end
 
   current.dir = dir
+
+  return true
 end
 
 function api.vars()

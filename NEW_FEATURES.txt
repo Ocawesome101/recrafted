@@ -4,6 +4,11 @@ The  following  is a  non-exhaustive  list  of  new
 and/or  changed features  in Recrafted compared  to
 CraftOS.
 
+!!!! THIS FILE IS OUTDATED !!!!
+
+See    https://ocaweso.me/recrafted    for    more
+up-to-date documentation.
+
 Major Changes
 =============
 

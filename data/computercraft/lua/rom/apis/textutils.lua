@@ -85,7 +85,7 @@ local function coloredWrite(paged, ...)
   local pageLines = 0
 
   local write = paged and pagedWrite or rc.write
-  local old = term.getTextColor()
+  local old_fg, old_bg = term.getTextColor(), term.getBackgroundColor()
   local _, h = term.getSize()
 
   for i=1, args.n, 1 do
@@ -107,7 +107,8 @@ local function coloredWrite(paged, ...)
     end
   end
 
-  term.setTextColor(old)
+  term.setTextColor(old_fg)
+  term.setBackgroundColor(old_bg)
 
   return lines
 end

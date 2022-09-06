@@ -1,5 +1,11 @@
                      RECRAFTED
 
+!! Important !!
+See  https://ocaweso.me/recrafted  for more  up-to-
+date information.
+!! ! ! ! ! ! !!
+
+
 Recrafted is ComputerCraft's CraftOS but with saner
 API design.  It's also not licensed under the CCPL,
 but rather the MIT license -- so you can freely use
@@ -16,7 +22,7 @@ license with permission from their authors.
 To use Recrafted, simply clone this repository into
 .minecraft/saves/YOUR_WORLD/datapacks/recrafted and
 reload the world.   You  can  also use the provided
-installer,  though  this  is not as well supported.
+installer, though it isn't quite as well supported.
 
 
 Recrafted addresses several  major pain points many
@@ -27,9 +33,9 @@ os.loadAPI has been  altogether discarded;  none of
 the APIs provided by  the  system are inserted into
 _G at  boot--instead  they  must  be  loaded  using
 require(), as per Lua convention.   And, of course,
-the CCPL is no longer present.
+the CCPL is no longer in the picture.
 
 For  questions  about Recrafted,  or  generally  to
 discuss   it  in  greater  depth,  please  use  the
 #recrafted   channel   in  my  Discord   guild   at
-https://discord.gg/6kXmSAcPWC.
+https://discord.gg/wUS85Ay6bR.
