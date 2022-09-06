@@ -26,6 +26,60 @@ settings.define("edit.scroll_offset", {
   default = 3
 })
 
+settings.define("edit.scroll_factor", {
+  description = "Related to how many lines the editor should jump at a time when scrolling. Determined by term_height/scroll_factor.",
+  type = "number",
+  default = 8
+})
+
+settings.define("edit.color_separator", {
+  description = "What color separating characters (e.g. ()[];{}) should be.",
+  type = "string",
+  default = "lightBlue"
+})
+
+settings.define("edit.color_operator", {
+  description = "What color operators (e.g. +-/*) should be.",
+  type = "string",
+  default = "lightGray"
+})
+
+settings.define("edit.color_keyword", {
+  description = "What color keywords (e.g. local, for, if) should be.",
+  type = "string",
+  default = "orange"
+})
+
+settings.define("edit.color_boolean", {
+  description = "What color booleans (true/false) should be.",
+  type = "string",
+  default = "purple"
+})
+
+settings.define("edit.color_comment", {
+  description = "What color comments should be.",
+  type = "string",
+  default = "gray"
+})
+
+settings.define("edit.color_global", {
+  description = "What color globals (e.g. print, require) should be.",
+  type = "string",
+  default = "lime"
+})
+
+settings.define("edit.color_string", {
+  description = "What color strings should be.",
+  type = "string",
+  default = "red"
+})
+
+settings.define("edit.color_number", {
+  description = "What color numbers (e.g. 2, 0xF3, 0.42) should be.",
+  type = "string",
+  default = "magenta"
+})
+
 settings.define("bios.restrict_globals", {
   description = "Disallow global variables",
   type = "boolean",
