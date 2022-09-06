@@ -7,6 +7,7 @@ local keys = require("keys")
 local term = require("term")
 local shell = require("shell")
 local colors = require("colors")
+local window = require("window")
 local settings = require("settings")
 local textutils = require("textutils")
 
@@ -44,6 +45,8 @@ end
 local function redraw()
   local w, h = term.getSize()
 
+  if term.setVisible then term.setVisible(false) end
+
   for i=1, h - 1, 1 do
     local to_write = state.lines[state.scroll + i] or ""
     if state.cx > w then
@@ -57,6 +60,8 @@ local function redraw()
   textutils.coloredWrite(colors.yellow, state.status, colors.white)
 
   term.setCursorPos(math.min(w, state.cx), state.cy - state.scroll)
+
+  if term.setVisible then term.setVisible(true) end
 end
 
 local run, menu = true, false
@@ -216,10 +221,16 @@ local function processInput()
   end
 end
 
+local old = term.current()
+local win = window.create(old, 1, 1, term.getSize())
+term.redirect(win)
+
 term.clear()
 while run do
   term.setCursorBlink(false)
+  win.setVisible(false)
   redraw()
+  win.setVisible(true)
   term.setCursorBlink(true)
   if menu then
     processMenuInput()
@@ -227,3 +238,5 @@ while run do
     processInput()
   end
 end
+
+term.redirect(old)

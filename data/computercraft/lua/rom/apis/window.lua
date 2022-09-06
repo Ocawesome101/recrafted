@@ -24,15 +24,15 @@ local function into_buffer(buf, x, y, text)
 end
 
 function window.create(parent, x, y, width, height, visible)
-  expect(1, parent, "table")
+  if type(parent) ~= "table" then expect(1, parent, "table") end
   if parent == term then
     error("do not pass 'term' as a window parent", 0)
   end
-  expect(2, x, "number")
-  expect(3, y, "number")
-  expect(4, width, "number")
-  expect(5, height, "number")
-  expect(6, visible, "boolean", "nil")
+  if type(x) ~= "number" then expect(2, x, "number") end
+  if type(y) ~= "number" then expect(3, y, "number") end
+  if type(width) ~= "number" then expect(4, width, "number") end
+  if type(height) ~= "number" then expect(5, height, "number") end
+  if type(visible) ~= "boolean" then expect(6, visible, "boolean", "nil") end
   if visible == nil then visible = true end
 
   local cursorX, cursorY, cursorBlink = 1, 1, false
@@ -81,7 +81,7 @@ function window.create(parent, x, y, width, height, visible)
   end
 
   function win.write(text)
-    expect(1, text, "string")
+    if type(text) ~= "string" then expect(1, text, "string") end
     local fg, bg = foreground:rep(#text), background:rep(#text)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, fg)
@@ -91,9 +91,9 @@ function window.create(parent, x, y, width, height, visible)
   end
 
   function win.blit(text, tcol, bcol)
-    expect(1, text, "string")
-    expect(2, tcol, "string")
-    expect(3, bcol, "string")
+    if type(text) ~= "string" then expect(1, text, "string") end
+    if type(tcol) ~= "string" then expect(2, tcol, "string") end
+    if type(bcol) ~= "string" then expect(3, bcol, "string") end
     assert(#text == #tcol and #text == #bcol, "mismatched argument lengths")
 
     into_buffer(textbuf, cursorX, cursorY, text)
@@ -134,8 +134,8 @@ function window.create(parent, x, y, width, height, visible)
   end
 
   function win.setCursorPos(_x, _y)
-    expect(1, _x, "number")
-    expect(2, _y, "number")
+    if type(_x) ~= "number" then expect(1, _x, "number") end
+    if type(_y) ~= "number" then expect(2, _y, "number") end
 
     cursorX, cursorY = _x, _y
     if visible then
@@ -161,7 +161,7 @@ function window.create(parent, x, y, width, height, visible)
   win.isColour = win.isColor
 
   function win.setTextColor(color)
-    expect(1, color, "number")
+    if type(color) ~= "number" then expect(1, color, "number") end
     foreground = colors.toBlit(color) or foreground
     if visible then
       restoreCursorColor()
@@ -171,12 +171,12 @@ function window.create(parent, x, y, width, height, visible)
   win.setTextColour = win.setTextColor
 
   function win.setPaletteColor(color, r, g, b)
-    expect(1, color, "number")
-    expect(2, r, "number")
+    if type(color) ~= "number" then expect(1, color, "number") end
+    if type(r) ~= "number" then expect(2, r, "number") end
 
     if r < 1 then
-      expect(3, g, "number")
-      expect(4, b, "number")
+      if type(g) ~= "number" then expect(3, g, "number") end
+      if type(b) ~= "number" then expect(4, b, "number") end
       palette[math.floor(math.log(color, 2))] = colors.packRGB(r, g, b)
     else
       palette[math.floor(math.log(color, 2))] = r
@@ -190,14 +190,14 @@ function window.create(parent, x, y, width, height, visible)
   win.setPaletteColour = win.setPaletteColor
 
   function win.getPaletteColor(color)
-    expect(1, color, "number")
+    if type(color) ~= "number" then expect(1, color, "number") end
     return palette[math.floor(math.log(color, 2))]
   end
 
   win.getPaletteColour = win.getPaletteColor
 
   function win.setBackgroundColor(color)
-    expect(1, color, "number")
+    if type(color) ~= "number" then expect(1, color, "number") end
     background = colors.toBlit(color)
   end
 
@@ -208,7 +208,7 @@ function window.create(parent, x, y, width, height, visible)
   end
 
   function win.scroll(n)
-    expect(1, n, "number")
+    if type(n) ~= "number" then expect(1, n, "number") end
 
     if n == 0 then return end
     local fg = string.rep(foreground, width)
@@ -253,7 +253,8 @@ function window.create(parent, x, y, width, height, visible)
   win.getBackgroundColour = win.getBackgroundColor
 
   function win.getLine(ly)
-    range(expect(1, ly, "number"), 1, height)
+    if type(ly) ~= "number" then expect(1, ly, "number") end
+    if ly < 1 or ly > height then range(ly, 1, height) end
     return textbuf[ly], fgbuf[ly], bgbuf[ly]
   end
 
@@ -290,35 +291,35 @@ function window.create(parent, x, y, width, height, visible)
     return x, y
   end
 
-  local function resize_buffer(buf, nw, nh)
-    if nh > #buf then
-      for _=1, nh - #buf, 1 do
-        buf[#buf+1] = buf[#buf]
-      end
-    end
-
+  local function resize_buffer(buf, nw, nh, c)
     if nw > width then
       for i=1, #buf, 1 do
         buf[i] = buf[i] .. buf[i]:sub(-1):rep(nw - width)
       end
     end
+
+    if nh > #buf then
+      for _=1, nh - #buf, 1 do
+        buf[#buf+1] = c:rep(nw)
+      end
+    end
   end
 
   function win.reposition(nx, ny, nw, nh, npar)
-    expect(1, nx, "number")
-    expect(2, ny, "number")
-    expect(3, nw, "number", "nil")
-    expect(4, nh, "number", "nil")
-    expect(5, npar, "table", "nil")
+    if type(nx) ~= "number" then expect(1, nx, "number") end
+    if type(ny) ~= "number" then expect(2, ny, "number") end
+    if type(nw) ~= "number" then expect(3, nw, "number", "nil") end
+    if type(nh) ~= "number" then expect(4, nh, "number", "nil") end
+    if type(npar) ~= "table" then expect(5, npar, "table", "nil") end
 
     x, y, width, height, parent =
       nx or x, ny or y,
       nw or width, nh or height,
       npar or parent
 
-    resize_buffer(textbuf, width, height)
-    resize_buffer(fgbuf, width, height)
-    resize_buffer(bgbuf, width, height)
+    resize_buffer(textbuf, width, height, " ")
+    resize_buffer(fgbuf, width, height, "f")
+    resize_buffer(bgbuf, width, height, "0")
 
     if visible then
       win.redraw()
