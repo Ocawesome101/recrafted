@@ -1,8 +1,11 @@
 -- A much better editor.
 
+local rc = require("rc")
+local keys = require("keys")
 local term = require("term")
 local colors = require("colors")
 local settings = require("settings")
+local textutils = require("textutils")
 
 local args = {...}
 
@@ -12,8 +15,8 @@ local type_colors = {
   keyword = colors[settings.get("edit.color_keyword") or "orange"],
   boolean = colors[settings.get("edit.color_boolean") or "purple"],
   comment = colors[settings.get("edit.color_comment") or "gray"],
+  builtin = colors[settings.get("edit.color_global") or "lime"],
   string = colors[settings.get("edit.color_string") or "red"],
-  global = colors[settings.get("edit.color_global") or "lime"],
   number = colors[settings.get("edit.color_number") or "magenta"]
 }
 
@@ -23,7 +26,9 @@ local run, menu = true, false
 local cx, cy = 1, 1
 local scroll = 0
 local hscroll = 0
-local unsaved
+local scroll_offset = settings.get("edit.scroll_offset") or 3
+local unsaved = false
+local file = args[1] or ".new"
 local status = "Press Ctrl for menu"
 
 local win = require("window").create(term.current(), 1, 1, term.getSize())
@@ -35,20 +40,35 @@ local function redraw()
   win.setVisible(false)
 
   for i=1, h - 1, 1 do
-    local line = linesDraw[scroll + i]
+    local line = linesDraw[i]
     win.setCursorPos(1, i)
     win.clearLine()
+    local _x = 0
+    local _limit = hscroll
     if line then
       for t=1, #line, 1 do
         local item = line[t]
-        if type(item) == "number" then
-          win.setTextColor(item)
-        else
-          win.write(item)
+        if _x >= _limit and _x < w then
+          if type(item) == "number" then
+            win.setTextColor(item)
+          else
+            win.write(item)
+          end
+        elseif type(item) == "string" then
+          _x = _x + #item
         end
       end
     end
   end
+
+  win.setCursorPos(1, h)
+  win.clearLine()
+  win.setTextColor(type_colors.accent or colors.yellow)
+  win.write(status)
+  win.setTextColor(colors.white)
+
+  win.setCursorPos(math.min(w, cx), cy - scroll)
+  win.setCursorBlink(true)
 
   win.setVisible(true)
 end
@@ -58,7 +78,10 @@ local syntax = require("edit.syntax").new("/rc/modules/main/edit/syntax/lua.lua"
 local function rehighlight()
   local line = {}
   linesDraw = {}
-  for token, ttype in syntax(table.concat(lines, "\n")) do
+  local _, h = term.getSize()
+  local text = table.concat(lines, "\n", scroll+1,
+    math.min(#lines, scroll+h)) or ""
+  for token, ttype in syntax(text) do
     if token == "\n" then
       linesDraw[#linesDraw+1] = line
       line = {}
@@ -70,15 +93,173 @@ local function rehighlight()
   end
 end
 
+local function save()
+  if file == ".new" then
+    local _, h = term.getSize()
+    term.setCursorPos(1, h)
+    textutils.coloredWrite(colors.yellow, "filename: ")
+    file = term.read()
+  end
+
+  local handle, err = io.open(file, "w")
+  if not handle then
+    status = err
+
+  else
+    for i=1, #lines, 1 do
+      handle:write(lines[i] .. "\n")
+    end
+    handle:close()
+
+    status = "Saved to " .. file
+    unsaved = false
+  end
+end
+
+local function processInput()
+  local event, id = rc.pullEvent()
+
+  local _, h = term.getSize()
+
+  if event == "char" then
+    local line = lines[cy]
+    unsaved = true
+
+    if cx > #line then
+      line = line .. id
+
+    elseif cx == 1 then
+      line = id .. line
+
+    else
+      line = line:sub(0, cx-1) .. id .. line:sub(cx)
+    end
+
+    cx = cx + 1
+    lines[cy] = line
+
+  elseif event == "key" then
+    id = keys.getName(id)
+
+    if id == "backspace" then
+      local line = lines[cy]
+      unsaved = true
+
+      if cx == 1 and cy > 1 then
+        local previous = table.remove(lines, cy - 1)
+        cy = cy - 1
+        cx = #previous + 1
+        line = previous .. line
+
+      else
+        if #line > 0 then
+          if cx > #line then
+            cx = cx - 1
+            line = line:sub(1, -2)
+
+          elseif cx > 1 then
+            line = line:sub(0, cx - 2) .. line:sub(cx)
+            cx = cx - 1
+          end
+        end
+      end
+
+      lines[cy] = line
+
+    elseif id == "enter" then
+      if cx == 1 then
+        table.insert(lines, cy, "")
+
+      elseif cx > #lines[cy] then
+        table.insert(lines, cy+1, "")
+
+      else
+        local line = lines[cy]
+        local before, after = line:sub(0, cx - 1), line:sub(cx)
+        lines[cy] = before
+        table.insert(lines, cy + 1, after)
+      end
+
+      cy = cy + 1
+      cx = 1
+
+    elseif id == "up" then
+      if cy > 1 then
+        cy = cy - 1
+        if cy - scroll < scroll_offset then
+          scroll = math.max(0, cy - scroll_offset)
+        end
+      end
+
+      cx = math.min(cx, #lines[cy] + 1)
+
+    elseif id == "down" then
+      if cy < #lines then
+        cy = math.min(#lines, cy + 1)
+
+        if cy - scroll > h - scroll_offset then
+          scroll = math.max(0, math.min(#lines - h + 1, cy - h + scroll_offset))
+        end
+      end
+
+      cx = math.min(cx, #lines[cy] + 1)
+
+    elseif id == "left" then
+      if cx > 1 then
+        cx = cx - 1
+      end
+
+    elseif id == "right" then
+      if cx < #lines[cy] + 1 then
+        cx = cx + 1
+      end
+
+    elseif id == "leftCtrl" or id == "rightCtrl" then
+      status = "S:save  E:exit"
+      menu = true
+    end
+  end
+end
+
+local function processMenuInput()
+  local event, id = rc.pullEvent()
+
+  if event == "char" then
+    if id:lower() == "e" then
+      if unsaved and menu ~= 2 then
+        status = "Lose unsaved work? E:yes C:no"
+        menu = 2
+      else
+        term.at(1, 1).clear()
+        run = false
+      end
+
+    elseif id:lower() == "c" and menu == 2 then
+      menu = false
+
+    elseif id:lower() == "s" then
+      save()
+      menu = false
+    end
+
+  elseif event == "key" then
+    id = keys.getName(id)
+
+    if id == "leftCtrl" or id == "rightCtrl" then
+      status = "Press Control for menu"
+      menu = false
+    end
+  end
+end
+
 if args[1] then
   for line in io.lines(args[1]) do
     lines[#lines+1] = line
   end
 end
 
-rehighlight()
-
 while run do
+  rehighlight()
   redraw()
   if menu then
     processMenuInput()

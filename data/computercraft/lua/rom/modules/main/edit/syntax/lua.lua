@@ -38,7 +38,7 @@ local syn = {
     "|", "^", "%", "~", "...", "..", "~=", "#", "."
   },
   boolean = {
-    "true", "false",
+    "true", "false", "nil"
   },
   comment = {
     {
