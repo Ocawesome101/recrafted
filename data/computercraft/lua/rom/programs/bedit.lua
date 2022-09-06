@@ -246,7 +246,7 @@ local function processMenuInput()
     id = keys.getName(id)
 
     if id == "leftCtrl" or id == "rightCtrl" then
-      status = "Press Control for menu"
+      status = "Press Ctrl for menu"
       menu = false
     end
   end
