@@ -6,21 +6,26 @@ local expect = require("cc.expect").expect
 local range = require("cc.expect").range
 local window = {}
 
+local rep = string.rep
+local sub = string.sub
+local max = math.max
+local min = math.min
+
 local function into_buffer(buf, x, y, text)
   if not text then return end
   if not buf[y] then return end
-  text = text:sub(1, #buf[y] - x + 1)
+  text = sub(text, 1, #buf[y] - x + 1)
   if x < 1 then
-    text = text:sub(-x + 1)
+    text = sub(text, -x + 1)
     x = 1
   end
   local olen = #buf[y]
   if x + #text > olen then
-    buf[y] = buf[y]:sub(0, math.max(0, x-1)) .. text
+    buf[y] = sub(buf[y], 0, max(0, x-1)) .. text
   else
-    buf[y] = buf[y]:sub(0, math.max(0, x-1)) .. text .. buf[y]:sub(x + #text)
+    buf[y] = sub(buf[y], 0, max(0, x-1)) .. text .. buf[y]:sub(x + #text)
   end
-  buf[y] = buf[y]:sub(1, olen)
+  buf[y] = sub(buf[y], 1, olen)
 end
 
 function window.create(parent, x, y, width, height, visible)
@@ -47,12 +52,16 @@ function window.create(parent, x, y, width, height, visible)
     palette[i] = colors.packRGB(parent.getPaletteColor(2^i))
   end
 
+  local function drawLine(i)
+    parent.setCursorPos(x, y + i - 1)
+    parent.blit(textbuf[i], fgbuf[i], bgbuf[i])
+  end
+
   local function draw()
     local blink = parent.getCursorBlink()
     parent.setCursorBlink(false)
     for i=1, height, 1 do
-      parent.setCursorPos(x, y + i - 1)
-      parent.blit(textbuf[i], fgbuf[i], bgbuf[i])
+      drawLine(i)
     end
     parent.setCursorBlink(blink)
   end
@@ -82,11 +91,11 @@ function window.create(parent, x, y, width, height, visible)
 
   function win.write(text)
     if type(text) ~= "string" then expect(1, text, "string") end
-    local fg, bg = foreground:rep(#text), background:rep(#text)
+    local fg, bg = rep(foreground, #text), background:rep(#text)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, fg)
     into_buffer(bgbuf, cursorX, cursorY, bg)
-    cursorX = math.max(0, math.min(cursorX + #text, width + 1))
+    cursorX = max(0, min(cursorX + #text, width + 1))
     if visible then win.redraw() end
   end
 
@@ -99,14 +108,19 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, tcol)
     into_buffer(bgbuf, cursorX, cursorY, bcol)
-    cursorX = math.max(0, math.min(cursorX + #text, width + 1))
-    if visible then win.redraw() end
+    cursorX = max(0, min(cursorX + #text, width + 1))
+
+    if visible then
+      drawLine(cursorY)
+      restoreCursorColor()
+      restoreCursorPos()
+    end
   end
 
   function win.clear()
-    local fore = string.rep(foreground, width)
-    local back = string.rep(background, width)
-    local blank = string.rep(" ", width)
+    local fore = rep(foreground, width)
+    local back = rep(background, width)
+    local blank = rep(" ", width)
 
     for i=1, height, 1 do
       textbuf[i] = blank
@@ -119,10 +133,16 @@ function window.create(parent, x, y, width, height, visible)
     end
   end
 
+
   function win.clearLine()
-    textbuf[cursorY] = string.rep(" ", width)
-    fgbuf[cursorY] = string.rep(foreground, width)
-    bgbuf[cursorY] = string.rep(background, width)
+    local emptyText, emptyFg, emptyBg =
+      rep(" ", width),
+      rep(foreground, width),
+      rep(background, width)
+
+    textbuf[cursorY] = emptyText
+    fgbuf[cursorY] = emptyFg
+    bgbuf[cursorY] = emptyBg
 
     if visible then
       win.redraw()
@@ -211,9 +231,9 @@ function window.create(parent, x, y, width, height, visible)
     if type(n) ~= "number" then expect(1, n, "number") end
 
     if n == 0 then return end
-    local fg = string.rep(foreground, width)
-    local bg = string.rep(background, width)
-    local blank = string.rep(" ", width)
+    local fg = rep(foreground, width)
+    local bg = rep(background, width)
+    local blank = rep(" ", width)
 
     if n > 0 then
       for _=1, n, 1 do
@@ -294,13 +314,13 @@ function window.create(parent, x, y, width, height, visible)
   local function resize_buffer(buf, nw, nh, c)
     if nw > width then
       for i=1, #buf, 1 do
-        buf[i] = buf[i] .. buf[i]:sub(-1):rep(nw - width)
+        buf[i] = buf[i] .. sub(rep(buf[i], -1), nw - width)
       end
     end
 
     if nh > #buf then
       for _=1, nh - #buf, 1 do
-        buf[#buf+1] = c:rep(nw)
+        buf[#buf+1] = rep(c, nw)
       end
     end
   end
@@ -318,8 +338,8 @@ function window.create(parent, x, y, width, height, visible)
       npar or parent
 
     resize_buffer(textbuf, width, height, " ")
-    resize_buffer(fgbuf, width, height, "f")
-    resize_buffer(bgbuf, width, height, "0")
+    resize_buffer(fgbuf, width, height, "0")
+    resize_buffer(bgbuf, width, height, "f")
 
     if visible then
       win.redraw()
