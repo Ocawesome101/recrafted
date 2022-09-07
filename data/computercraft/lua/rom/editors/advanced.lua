@@ -60,21 +60,15 @@ local function redraw()
 
   for i=1, h - 1, 1 do
     local line = linesDraw[i]
-    win.setCursorPos(1, i)
+    win.setCursorPos(1 - hscroll, i)
     win.clearLine()
-    local _x = 0
-    local _limit = hscroll
     if line then
       for t=1, #line, 1 do
         local item = line[t]
-        if _x >= _limit and _x < w then
-          if type(item) == "number" then
-            win.setTextColor(item)
-          else
-            win.write(item)
-          end
-        elseif type(item) == "string" then
-          _x = _x + #item
+        if type(item) == "number" then
+          win.setTextColor(item)
+        else
+          win.write(item)
         end
       end
     end
@@ -153,7 +147,7 @@ end
 local function processInput()
   local event, id = rc.pullEvent()
 
-  local _, h = term.getSize()
+  local w, h = term.getSize()
 
   if event == "char" then
     local line = lines[cy]
@@ -256,10 +250,14 @@ local function processInput()
         cx = cx - 1
       end
 
+      hscroll = math.max(0, cx - w)
+
     elseif id == "right" then
       if cx < #lines[cy] + 1 then
         cx = cx + 1
       end
+
+      hscroll = math.max(0, cx - w)
 
     elseif id == "leftCtrl" or id == "rightCtrl" then
       status = "S:save  E:exit"

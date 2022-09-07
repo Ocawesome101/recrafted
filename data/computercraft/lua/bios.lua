@@ -1,4 +1,4 @@
--- Recrafted 1.4.0
+-- Recrafted 1.5.0
 
 local fs = rawget(_G, "fs")
 
@@ -34,7 +34,7 @@ local rc = {
   _NAME = "Recrafted",
   _VERSION = {
     major = 1,
-    minor = 4,
+    minor = 5,
     patch = 0
   },
   queueEvent  = pull(os, "queueEvent"),

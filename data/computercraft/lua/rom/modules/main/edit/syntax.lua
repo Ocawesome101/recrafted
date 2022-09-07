@@ -88,10 +88,21 @@ function lib.new(file)
         end
       end
 
+      local former_longest, new_longest = 0, 0
+
       -- remove all invalid possibilites
       for i=#possibilities, 1, -1 do
         if not possibilities[i].valid(possibilities[i].token) then
+          former_longest = math.max(#possibilities[i].token, former_longest)
           table.remove(possibilities, i)
+        else
+          new_longest = math.max(#possibilities[i].token, new_longest)
+        end
+      end
+
+      if former_longest > new_longest then
+        for _=new_longest, former_longest - 1 do
+          read.backpedal()
         end
       end
 

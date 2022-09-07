@@ -16,7 +16,7 @@ local function into_buffer(buf, x, y, text)
   if not buf[y] then return end
   text = sub(text, 1, #buf[y] - x + 1)
   if x < 1 then
-    text = sub(text, -x + 1)
+    text = sub(text, -x + 2)
     x = 1
   end
   local olen = #buf[y]
@@ -95,7 +95,7 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(textbuf, cursorX, cursorY, text)
     into_buffer(fgbuf, cursorX, cursorY, fg)
     into_buffer(bgbuf, cursorX, cursorY, bg)
-    cursorX = max(0, min(cursorX + #text, width + 1))
+    cursorX = max(-100, min(cursorX + #text, width + 1))
     if visible then win.redraw() end
   end
 

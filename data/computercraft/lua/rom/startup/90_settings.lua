@@ -26,8 +26,14 @@ settings.define("edit.scroll_offset", {
   default = 3
 })
 
+settings.define("edit.force_highlight", {
+  description = "Whether to use the highlighting editor, even on basic computers.",
+  type = "boolean",
+  default = false
+})
+
 settings.define("edit.scroll_factor", {
-  description = "Related to how many lines the editor should jump at a time when scrolling. Determined by term_height/scroll_factor.",
+  description = "Related to how many lines the editor should jump at a time when scrolling. Determined by term_height/scroll_factor.  Adjust this for performance.",
   type = "number",
   default = 8
 })
