@@ -1,0 +1,4 @@
+Feature wishlist:
+
+ - virtual filesystem layer
+ - change turtle.craft behavior
