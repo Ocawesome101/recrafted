@@ -18,9 +18,7 @@ if fs.exists("/.start_rc.lua") and not (...) then
 end
 
 local function pull(tab, key)
-  local func = tab[key]
-  tab[key] = nil
-  return func
+  return tab[key]
 end
 
 -- this is overwritten further down but `load` needs it
@@ -55,18 +53,22 @@ local rc = {
 -- and a few more
 rc.pushEvent = rc.queueEvent
 
-function rc.shutdown()
+function os.shutdown()
   shutdown()
   while true do coroutine.yield() end
 end
 
-function rc.reboot()
+rc.shutdown = os.shutdown
+
+function os.reboot()
   reboot()
   while true do coroutine.yield() end
 end
 
+rc.reboot = os.reboot
+
 local timer_filter = {}
-function rc.pullEventRaw(filter)
+function os.pullEventRaw(filter)
   expect(1, filter, "string", "nil")
 
   local sig
@@ -79,7 +81,7 @@ function rc.pullEventRaw(filter)
   return table.unpack(sig, 1, sig.n)
 end
 
-function rc.pullEvent(filter)
+function os.pullEvent(filter)
   expect(1, filter, "string", "nil")
 
   local sig
@@ -95,7 +97,9 @@ function rc.pullEvent(filter)
   return table.unpack(sig, 1, sig.n)
 end
 
-function rc.sleep(time, no_term)
+rc.pullEvent, rc.pullEventRaw = os.pullEvent, os.pullEventRaw
+
+function os.sleep(time, no_term)
   local id = rc.startTimer(time)
   local thread = require("rc.thread").id()
   timer_filter[id] = thread
@@ -105,7 +109,9 @@ function rc.sleep(time, no_term)
   until tid == id
 end
 
-function rc.version()
+rc.sleep = os.sleep
+
+function os.version()
   return string.format("Recrafted %d.%d.%d",
     rc._VERSION.major, rc._VERSION.minor, rc._VERSION.patch)
 end
