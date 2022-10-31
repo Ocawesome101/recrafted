@@ -1,4 +1,4 @@
--- Recrafted 1.5.0
+_G._HOST = _G._HOST .. " (Recrafted 1.5.0)"
 
 local fs = rawget(_G, "fs")
 
