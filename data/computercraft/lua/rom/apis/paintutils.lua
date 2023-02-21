@@ -99,14 +99,15 @@ function p.drawBox(startX, startY, endX, endY, color)
   expect(4, endY, "number")
   expect(5, color, "number")
 
-  -- -
-  p.drawLine(startX, startY, endX, startY, color)
-  -- _
-  p.drawLine(startX, endY, endX, endY, color)
-  -- |
-  p.drawLine(startX, startY, startX, endY, color)
-  --    |
-  p.drawLine(endX, startY, endX, endY, color)
+  local col = string.format("%x", math.floor(math.log(color, 2)))
+  local ht, hc = (" "):rep(endX-startX+1), col:rep(endX-startX+1)
+
+  term.at(startX, startY).blit(ht, hc, hc)
+  for i=startY, endY do
+    term.at(startX, i).blit(" ", col, col)
+    term.at(endX, i).blit(" ", col, col)
+  end
+  term.at(startX, endY).blit(ht, hc, hc)
 end
 
 function p.drawFilledBox(startX, startY, endX, endY, color)
@@ -116,10 +117,11 @@ function p.drawFilledBox(startX, startY, endX, endY, color)
   expect(4, endY, "number")
   expect(5, color, "number")
 
-  if color then term.setBackgroundColor(color) end
-  local line = string.rep(" ", endX - startX + 1)
+  local col = string.format("%x", math.floor(math.log(color, 2)))
+  local ht, hc = (" "):rep(endX-startX+1), col:rep(endX-startX+1)
+
   for y=startY, endY, 1 do
-    term.at(startX, y).write(line)
+    term.at(startX, y).blit(ht, hc, hc)
   end
 end
 
