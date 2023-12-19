@@ -11,7 +11,12 @@ local window = require("window")
 local expect = require("cc.expect")
 local copy = require("rc.copy").copy
 
-local getfenv = rc.lua51.getfenv
+local getfenv
+if rc.lua51 then
+  getfenv = rc.lua51.getfenv
+else
+  getfenv = function() return _ENV or _G end
+end
 
 local tabs = { {} }
 local threads = {}
@@ -58,7 +63,7 @@ function api.load(file, name)
   expect(1, file, "string")
   name = expect(2, name, "string", "nil") or file
 
-  local env = copy(current and current.env or _G, package.loaded)
+  local env = copy(current and current.env or _ENV or _G, package.loaded)
 
   local func, err = loadfile(file, "t", env)
   if not func then
@@ -78,7 +83,7 @@ function api.spawn(func, name, _)
       assert(xpcall(func, debug.traceback))
     end),
     vars = setmetatable({}, {__index = current and current.vars}),
-    env = getfenv(func),
+    env = getfenv(func) or _ENV or _G,
     tab = _ or tabs[focused],
     id = #threads + 1,
     dir = current and current.dir or "/"
