@@ -167,6 +167,8 @@ local function write(text)
   return lines
 end--]]
 
+rc.write = write
+
 -- read
 local empty = {}
 function term.read(replace, history, complete, default)

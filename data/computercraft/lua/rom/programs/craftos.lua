@@ -18,8 +18,8 @@ local libs = {
 
 local move = {
   "queueEvent", "startTimer", "cancelTimer", "setAlarm", "cancelAlarm", "getComputerID",
-  "computerID", "getComputerLabel", "setComputerLabel", "computerLabel", "clock", "day", "epoch",
-  "pullEvent"
+  "computerID", "getComputerLabel", "setComputerLabel", "computerLabel", "day", "epoch",
+  "pullEvent", "sleep"
 }
 
 local nEnv = setmetatable({}, {__index=_G})
@@ -47,6 +47,7 @@ if rc.lua51 then
 end
 
 nEnv.read = nEnv.term.read
+nEnv.sleep = nEnv.os.sleep
 
 function nEnv.os.version()
   return "CraftOS 1.8"

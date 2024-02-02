@@ -74,6 +74,7 @@ while true do
     history[#history+1] = text
     local ok, err = shell.run(text)
     if not ok and err then
+      io.open("/a","a"):write(err):close()
       io.stderr:write(err, "\n")
     end
   end

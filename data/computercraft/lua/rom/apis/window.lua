@@ -54,14 +54,17 @@ function window.create(parent, x, y, width, height, visible)
 
   local function drawLine(i)
     parent.setCursorPos(x, y + i - 1)
+    if not textbuf[i] then return end
     parent.blit(textbuf[i], fgbuf[i], bgbuf[i])
   end
 
   local function draw()
     local blink = parent.getCursorBlink()
     parent.setCursorBlink(false)
-    for i=1, height, 1 do
-      drawLine(i)
+    local parentW, parentH = parent.getSize()
+    local firstVisible = math.max(1, -y+2)
+    for i=1, math.min(height, parentH), 1 do
+      drawLine(firstVisible+i-1)
     end
     parent.setCursorBlink(blink)
   end
