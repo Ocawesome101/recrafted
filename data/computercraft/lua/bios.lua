@@ -47,7 +47,6 @@ local rc = {
   getComputerLabel  = pull(os, "getComputerLabel"),
   computerLabel     = pull(os, "computerLabel"),
   setComputerLabel  = pull(os, "setComputerLabel"),
-  clock       = pull(os, "clock"),
   day         = pull(os, "day"),
   epoch       = pull(os, "epoch"),
 }
