@@ -61,11 +61,14 @@ function window.create(parent, x, y, width, height, visible)
   local function draw()
     local blink = parent.getCursorBlink()
     parent.setCursorBlink(false)
+
     local parentW, parentH = parent.getSize()
     local firstVisible = math.max(1, -y+2)
+
     for i=1, math.min(height, parentH), 1 do
       drawLine(firstVisible+i-1)
     end
+
     parent.setCursorBlink(blink)
   end
 
@@ -99,7 +102,9 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(fgbuf, cursorX, cursorY, fg)
     into_buffer(bgbuf, cursorX, cursorY, bg)
     cursorX = max(-100, min(cursorX + #text, width + 1))
-    if visible then win.redraw() end
+
+    local firstVisible, _, maxHeight = math.max(1, -y+2), parent.getSize()
+    if visible and cursorY >= firstVisible and cursorY <= firstVisible+maxHeight then win.redraw() end
   end
 
   function win.blit(text, tcol, bcol)
@@ -113,7 +118,8 @@ function window.create(parent, x, y, width, height, visible)
     into_buffer(bgbuf, cursorX, cursorY, bcol)
     cursorX = max(0, min(cursorX + #text, width + 1))
 
-    if visible then
+    local firstVisible, _, maxHeight = math.max(1, -y+2), parent.getSize()
+    if visible and cursorY >= firstVisible and cursorY <= firstVisible+maxHeight then
       drawLine(cursorY)
       restoreCursorColor()
       restoreCursorPos()
@@ -147,7 +153,8 @@ function window.create(parent, x, y, width, height, visible)
     fgbuf[cursorY] = emptyFg
     bgbuf[cursorY] = emptyBg
 
-    if visible then
+    local firstVisible, _, maxHeight = math.max(1, -y+2), parent.getSize()
+    if visible and cursorY >= firstVisible and cursorY <= firstVisible+maxHeight then
       win.redraw()
     end
   end
