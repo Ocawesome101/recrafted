@@ -8,10 +8,14 @@ local colors = require("colors")
 local thread = require("rc.thread")
 local textutils = require("textutils")
 
-textutils.coloredPrint(colors.yellow, rc.version(), colors.white)
+if os.version then
+  textutils.coloredPrint(colors.yellow, os.version(), colors.white)
+else
+  textutils.coloredPrint(colors.yellow, rc.version(), colors.white)
+end
 
 thread.vars().parentShell = thread.id()
-shell.init()
+shell.init(_ENV)
 
 if not shell.__has_run_startup then
   shell.__has_run_startup = true

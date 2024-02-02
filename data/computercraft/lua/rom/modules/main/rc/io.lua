@@ -216,7 +216,7 @@ function _G.loadfile(file, mode, env)
   end
   local data = handle:read("a")
   handle:close()
-  return load(data, "="..file, "bt", env)
+  return load(data, "="..file, mode or "bt", env)
 end
 
 function _G.dofile(file, ...)

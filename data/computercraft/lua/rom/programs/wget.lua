@@ -28,13 +28,13 @@ local function get(url)
   return data
 end
 
-local data = get(args[1])
-
 if args[1] == "run" then
+  local data = get(args[2])
   assert(load(data, "=<wget-run>", "t", _G))()
 else
   local filename = args[2] or (args[1]:match("[^/]+$")) or
     error("could not determine file name", 0)
+  local data = get(args[1])
   local handle, err = io.open(filename, "w")
   if not handle then
     error(err, 0)

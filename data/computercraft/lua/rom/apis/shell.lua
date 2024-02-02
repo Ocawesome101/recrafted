@@ -26,13 +26,14 @@ end
 
 local completions = {[0]={}}
 
-function shell.init()
+function shell.init(env)
   local vars = thread.vars()
 
   copyIfPresent("aliases", vars)
   completions[vars.parentShell or 0] = completions[vars.parentShell or 0] or {}
 
   vars.path = vars.path or ".:/rc/programs"
+  vars.env = env or _ENV or _G
 end
 
 local builtins = {
@@ -100,7 +101,7 @@ local function execProgram(fork, command, ...)
     return nil, res_err
   end
 
-  local ok, err = loadfile(path)
+  local ok, err = loadfile(path, "t", thread.vars().env)
 
   if not ok then
     return nil, err

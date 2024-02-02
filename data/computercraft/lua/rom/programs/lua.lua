@@ -6,7 +6,7 @@ local colors = require("colors")
 local pretty = require("cc.pretty")
 local textutils = require("textutils")
 
-local env = copy(_G, package.loaded)
+local env = copy(_ENV, package.loaded)
 
 local run = true
 function env.exit() run = false end
